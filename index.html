@@ -22,6 +22,9 @@
       </div>
     </header>
 
+    <!-- Kategorija pillule — vidljive samo na mobilnom -->
+    <div id="category-pills" class="category-pills"></div>
+
     <main class="main">
       <!-- Periodni sustav — uvijek vidljiv -->
       <div class="canvas-wrap">
@@ -34,10 +37,22 @@
           <span>✋ Povuci element u komoru</span>
           <span>🔍 Kotač = zoom &nbsp;✥ Drag = pomak</span>
         </div>
+
+        <!-- Period quick-jump — vidljiv samo na mobilnom -->
+        <div id="period-strip" class="period-strip">
+          <span class="period-label">↕</span>
+          <button class="period-btn" onclick="jumpToPeriod(1)">1</button>
+          <button class="period-btn" onclick="jumpToPeriod(2)">2</button>
+          <button class="period-btn" onclick="jumpToPeriod(3)">3</button>
+          <button class="period-btn" onclick="jumpToPeriod(4)">4</button>
+          <button class="period-btn" onclick="jumpToPeriod(5)">5</button>
+          <button class="period-btn" onclick="jumpToPeriod(6)">6</button>
+          <button class="period-btn" onclick="jumpToPeriod(7)">7</button>
+        </div>
       </div>
 
       <!-- Desni panel: info + kocka komora -->
-      <div class="right-panel">
+      <div class="right-panel chamber-standard">
         <aside id="info-panel" class="info-panel"></aside>
 
         <!-- 3D kocka komora -->
@@ -49,6 +64,16 @@
           <div class="cube-face-right"></div>
 
           <section class="mixer" id="mixer-section">
+            <!-- Swipe handle — vidljiv samo na mobilnom -->
+            <div id="chamber-handle" class="chamber-handle">
+              <div class="handle-pill"></div>
+              <div class="handle-states">
+                <button class="state-btn" onclick="setChamberState('mini')"    title="Mini">▾</button>
+                <button class="state-btn" onclick="setChamberState('standard')" title="Standard">◈</button>
+                <button class="state-btn" onclick="setChamberState('full')"    title="Full">▴</button>
+              </div>
+            </div>
+
             <!-- Three.js 3D prikaz (atom / spoj) -->
             <canvas id="chamber-canvas" class="chamber-canvas"></canvas>
             <!-- Magla i tesla -->
@@ -88,6 +113,18 @@
   <!-- Drag ghost i hintovi -->
   <div id="drag-ghost" class="drag-ghost"></div>
   <div id="drag-hints" class="drag-hints"></div>
+
+  <!-- Mobilni action sheet (tap na element) -->
+  <div id="mobile-action-sheet" class="mobile-action-sheet">
+    <div class="action-sheet-backdrop" onclick="hideActionSheet()"></div>
+    <div class="action-sheet-panel">
+      <div class="action-sheet-handle-bar"></div>
+      <div id="action-sheet-content" class="action-sheet-content"></div>
+    </div>
+  </div>
+
+  <!-- Long-press lupa -->
+  <div id="magnifier" class="magnifier"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
