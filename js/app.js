@@ -1,0 +1,1046 @@
+// =============================================================
+// PERIODNI SUSTAV 3D
+// Dva Three.js renderera:
+//   1. main  — periodni sustav (uvijek vidljiv)
+//   2. chamber — atom / spoj prikaz u kocki
+// =============================================================
+
+// ── Main renderer ────────────────────────────────────────────
+let scene, camera, renderer, controls;
+let raycaster, pointer;
+let clock = new THREE.Clock();
+let currentObject = null;   // uvijek tableGroup
+let hoveredCard   = null;
+let canvasEl, canvasWrap;
+
+// ── Chamber renderer ─────────────────────────────────────────
+let chamberScene, chamberCamera, chamberRenderer;
+let chamberObject = null;   // atom ili spoj unutar kocke
+let chamberMode   = 'empty'; // 'empty' | 'atom' | 'compound'
+
+// ── Interaction state ────────────────────────────────────────
+let dragState  = null;
+let isDragging = false;
+let panState   = null;
+
+// ── Mixer ────────────────────────────────────────────────────
+let mixer = [];
+
+const SPACING   = 1.65;
+const CARD_SIZE = 1.45;
+
+// =============================================================
+// INIT
+// =============================================================
+function init() {
+  canvasEl   = document.getElementById('canvas');
+  canvasWrap = document.querySelector('.canvas-wrap');
+
+  // ── Glavna scena ──────────────────────────────────────────
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x06081a);
+  scene.fog = new THREE.Fog(0x06081a, 35, 110);
+
+  const w = canvasEl.clientWidth, h = canvasEl.clientHeight;
+  camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 1000);
+  camera.position.set(0, 2, 24);
+
+  renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  addDirLight(scene, 0xffffff, 0.8, 8, 12, 10);
+  addPointLight(scene, 0x00d4ff, 1.4, 60, 0, 0, 10);
+  addPointLight(scene, 0xff6090, 0.8, 60, -12, -5, 5);
+  addPointLight(scene, 0xffffff, 0.5, 50, 15, 10, 8);
+
+  addStars();
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.enableRotate  = false; controls.enablePan = false;
+  controls.zoomSpeed = 1.2; controls.maxDistance = 80; controls.minDistance = 4;
+
+  raycaster = new THREE.Raycaster();
+  pointer   = new THREE.Vector2(-9999, -9999);
+
+  buildTable();
+
+  // ── Chamber scena ─────────────────────────────────────────
+  initChamberRenderer();
+
+  setupUI();
+  setupListeners();
+  initMagicChamber();
+  animate();
+  hideLoading();
+}
+
+function addDirLight(sc, color, intensity, x, y, z) {
+  const l = new THREE.DirectionalLight(color, intensity);
+  l.position.set(x, y, z); sc.add(l);
+}
+function addPointLight(sc, color, intensity, distance, x, y, z) {
+  const l = new THREE.PointLight(color, intensity, distance);
+  l.position.set(x, y, z); sc.add(l);
+}
+
+function addStars() {
+  const geo = new THREE.BufferGeometry();
+  const pos = [];
+  for (let i = 0; i < 600; i++)
+    pos.push((Math.random()-.5)*220, (Math.random()-.5)*220, (Math.random()-.5)*220);
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo,
+    new THREE.PointsMaterial({ color:0xffffff, size:.14, transparent:true, opacity:.55 })));
+}
+
+function hideLoading() {
+  const l = document.getElementById('loading');
+  if (l) l.style.display = 'none';
+}
+
+// =============================================================
+// CHAMBER RENDERER
+// =============================================================
+function initChamberRenderer() {
+  const cc = document.getElementById('chamber-canvas');
+  if (!cc) return;
+
+  chamberScene = new THREE.Scene();
+  // Bez pozadine — transparentno (alpha:true), magla vidljiva iza
+
+  const cw = cc.clientWidth  || 282;
+  const ch = cc.clientHeight || 282;
+  chamberCamera = new THREE.PerspectiveCamera(52, cw / ch, 0.1, 100);
+  chamberCamera.position.set(0, 0, 12);
+
+  chamberRenderer = new THREE.WebGLRenderer({ canvas: cc, antialias: true, alpha: true });
+  chamberRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  chamberRenderer.setSize(cw, ch, false);
+  chamberRenderer.outputEncoding = THREE.sRGBEncoding;
+
+  chamberScene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  addDirLight(chamberScene, 0xffffff, 0.9, 5, 8, 7);
+  addPointLight(chamberScene, 0x00d4ff, 1.3, 25, 0, 0, 8);
+  addPointLight(chamberScene, 0xa855f7, 0.8, 20, -5, -3, 3);
+}
+
+function clearChamberScene() {
+  if (chamberObject) {
+    chamberScene.remove(chamberObject);
+    disposeGroup(chamberObject);
+    chamberObject = null;
+  }
+  chamberMode = 'empty';
+}
+
+// =============================================================
+// CARD TEXTURE
+// =============================================================
+function makeCardTexture(el) {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 256;
+  const ctx = cv.getContext('2d');
+
+  const cat = window.CATEGORIES[el.cat];
+  const hex = '#' + cat.color.toString(16).padStart(6, '0');
+  const r = (cat.color >> 16) & 255, g = (cat.color >> 8) & 255, b = cat.color & 255;
+
+  ctx.fillStyle = '#07091a'; ctx.fillRect(0, 0, 256, 256);
+
+  const bg = ctx.createRadialGradient(85, 65, 15, 128, 128, 148);
+  bg.addColorStop(0,   `rgba(${Math.min(r+90,255)},${Math.min(g+90,255)},${Math.min(b+90,255)},.95)`);
+  bg.addColorStop(0.4, `rgba(${r},${g},${b},.88)`);
+  bg.addColorStop(0.82,`rgba(${Math.max(r-55,0)},${Math.max(g-55,0)},${Math.max(b-55,0)},.78)`);
+  bg.addColorStop(1,   `rgba(${Math.max(r-100,0)},${Math.max(g-100,0)},${Math.max(b-100,0)},.5)`);
+  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = bg; ctx.fill();
+
+  const gl = ctx.createLinearGradient(0,0,256,256);
+  gl.addColorStop(0,'rgba(255,255,255,.13)'); gl.addColorStop(.5,'rgba(255,255,255,.02)'); gl.addColorStop(1,'rgba(0,0,0,.22)');
+  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = gl; ctx.fill();
+
+  ctx.shadowColor = hex; ctx.shadowBlur = 14;
+  ctx.strokeStyle = hex + 'dd'; ctx.lineWidth = 3;
+  roundRect(ctx,8,8,240,240,16); ctx.stroke(); ctx.shadowBlur = 0;
+
+  const sp = ctx.createRadialGradient(52,42,4,78,66,72);
+  sp.addColorStop(0,'rgba(255,255,255,.58)'); sp.addColorStop(.5,'rgba(255,255,255,.1)'); sp.addColorStop(1,'rgba(255,255,255,0)');
+  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = sp; ctx.fill();
+
+  const sh = ctx.createLinearGradient(0,170,0,248);
+  sh.addColorStop(0,'rgba(0,0,0,0)'); sh.addColorStop(1,'rgba(0,0,0,.48)');
+  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = sh; ctx.fill();
+
+  ctx.globalAlpha = .05;
+  for (let y2=12; y2<244; y2+=6) { ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillRect(12,y2,232,1); }
+  ctx.globalAlpha = 1;
+
+  ctx.font='600 22px "Segoe UI",sans-serif'; ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,255,255,.85)'; ctx.fillText(el.n.toString(),20,40);
+
+  ctx.shadowColor='rgba(255,255,255,.38)'; ctx.shadowBlur=10;
+  ctx.font='bold 108px "Segoe UI",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#fff'; ctx.fillText(el.s,128,138); ctx.shadowBlur=0;
+
+  ctx.font='500 20px "Segoe UI",sans-serif'; ctx.fillStyle='rgba(255,255,255,.92)'; ctx.textBaseline='alphabetic';
+  ctx.fillText(el.name,128,200);
+  ctx.font='400 15px "Segoe UI",sans-serif'; ctx.fillStyle='rgba(255,255,255,.52)';
+  ctx.fillText(el.m.toString(),128,223);
+
+  const bar = ctx.createLinearGradient(20,232,236,232);
+  bar.addColorStop(0,'transparent'); bar.addColorStop(.25,hex); bar.addColorStop(.75,hex); bar.addColorStop(1,'transparent');
+  ctx.globalAlpha=.65; ctx.fillStyle=bar; ctx.fillRect(20,234,216,3); ctx.globalAlpha=1;
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.encoding = THREE.sRGBEncoding; return tex;
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function shade(hex, lum) {
+  let c=parseInt(hex.slice(1),16), r=(c>>16)&255, g=(c>>8)&255, b=c&255;
+  if (lum>0) { r=Math.min(255,Math.round(r+(255-r)*lum)); g=Math.min(255,Math.round(g+(255-g)*lum)); b=Math.min(255,Math.round(b+(255-b)*lum)); }
+  else       { r=Math.max(0,Math.round(r*(1+lum))); g=Math.max(0,Math.round(g*(1+lum))); b=Math.max(0,Math.round(b*(1+lum))); }
+  return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+
+// =============================================================
+// BUILD TABLE (glavna scena — nikad se ne briše)
+// =============================================================
+function buildTable() {
+  const grp = new THREE.Group(); grp.name = 'tableGroup';
+  window.ELEMENTS.forEach(el => {
+    const tex = makeCardTexture(el);
+    const cat = window.CATEGORIES[el.cat];
+    const card = new THREE.Mesh(
+      new THREE.BoxGeometry(CARD_SIZE, CARD_SIZE, 0.2),
+      [
+        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
+        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
+        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
+        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
+        new THREE.MeshStandardMaterial({ map:tex, roughness:.35, metalness:.5 }),
+        new THREE.MeshStandardMaterial({ color:0x181a2e, roughness:.8, metalness:.2 })
+      ]
+    );
+    const x = (el.col - 9.5) * SPACING;
+    let   y = -(el.row - 4.5) * SPACING;
+    if (el.row === 9)  y -= 0.6;
+    if (el.row === 10) y -= 0.6;
+    card.position.set(x, y, 0);
+    card.userData.element = el; card.userData.isCard = true;
+    card.userData.basePos = card.position.clone();
+    card.rotation.y = (el.n % 5 - 2) * .012;
+    card.rotation.x = (el.n % 3 - 1) * .008;
+    grp.add(card);
+  });
+  scene.add(grp); currentObject = grp;
+}
+
+// =============================================================
+// ATOM — prikazuje se u chamber sceni
+// =============================================================
+function showAtom(element) {
+  clearChamberScene(); chamberMode = 'atom';
+
+  const grp = new THREE.Group(); grp.name = 'atomGroup';
+  const nr  = Math.max(.55, Math.log(element.n + 1) * .32);
+
+  const nucleus = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(nr, 3),
+    new THREE.MeshStandardMaterial({ color:0xff5566, emissive:0xff2233, emissiveIntensity:.55, roughness:.25, metalness:.3 })
+  );
+  grp.add(nucleus);
+  grp.add(new THREE.Mesh(
+    new THREE.SphereGeometry(nr*1.45,32,32),
+    new THREE.MeshBasicMaterial({ color:0xff6677, transparent:true, opacity:.18, side:THREE.BackSide })
+  ));
+
+  const shells = window.getBohrShells(element.n);
+  const shellGroups = [];
+  shells.forEach((count, si) => {
+    const R  = nr + 1.6 + si * 1.4;
+    const sg = new THREE.Group();
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(R, .022, 8, 96),
+      new THREE.MeshBasicMaterial({ color:0x00d4ff, transparent:true, opacity:.28 })
+    );
+    ring.rotation.x = Math.PI / 2; sg.add(ring);
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2;
+      const e = new THREE.Mesh(
+        new THREE.SphereGeometry(.13,16,16),
+        new THREE.MeshStandardMaterial({ color:0x00e5ff, emissive:0x00d4ff, emissiveIntensity:1.3 })
+      );
+      e.position.set(Math.cos(a)*R, 0, Math.sin(a)*R);
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(.24,16,16),
+        new THREE.MeshBasicMaterial({ color:0x00d4ff, transparent:true, opacity:.28 })
+      );
+      glow.position.copy(e.position); sg.add(e); sg.add(glow);
+    }
+    sg.rotation.x = si*.5-.3; sg.rotation.z = si*.4;
+    sg.userData.rotSpeed = .7 - si*.08;
+    grp.add(sg); shellGroups.push(sg);
+  });
+
+  grp.userData.shells  = shellGroups;
+  grp.userData.nucleus = nucleus;
+  grp.userData.isAtom  = true;
+  grp.userData.element = element;
+
+  chamberScene.add(grp); chamberObject = grp;
+
+  // Prilagodi kameru prema broju ljuski
+  const camDist = Math.max(8, 4.5 + shells.length * 2.2);
+  chamberCamera.position.set(0, 0, camDist);
+  chamberCamera.lookAt(0, 0, 0);
+
+  updateInfoPanelAtom(element);
+}
+
+// =============================================================
+// SPOJ — prikazuje se u chamber sceni
+// =============================================================
+function showCompound(compound) {
+  clearChamberScene(); chamberMode = 'compound';
+
+  const grp = new THREE.Group(); grp.name = 'compoundGroup';
+  grp.userData.isCompound = true;
+
+  const atomMeshes = [];
+  compound.atoms.forEach(a => {
+    const ed = window.ELEMENTS.find(e => e.s === a.el);
+    const ar = Math.max(.32, Math.log((ed?.n || 1)+1)*.22);
+    const ac = ed?.color || 0xffffff;
+    const atom = new THREE.Mesh(
+      new THREE.SphereGeometry(ar,32,32),
+      new THREE.MeshStandardMaterial({ color:ac, roughness:.3, metalness:.5, emissive:ac, emissiveIntensity:.22 })
+    );
+    atom.position.fromArray(a.pos);
+    atom.add(new THREE.Mesh(
+      new THREE.SphereGeometry(ar*1.38,32,32),
+      new THREE.MeshBasicMaterial({ color:ac, transparent:true, opacity:.14, side:THREE.BackSide })
+    ));
+    grp.add(atom); atomMeshes.push(atom);
+    const sp = makeTextSprite(a.el, .5);
+    sp.position.copy(atom.position); sp.position.y += ar + .35;
+    grp.add(sp);
+    const mini = createMiniElectrons(ed, ar);
+    mini.position.copy(atom.position); grp.add(mini);
+    (grp.userData.miniAtoms = grp.userData.miniAtoms || []).push(mini);
+  });
+
+  compound.bonds.forEach(b => {
+    const a1 = atomMeshes[b.from], a2 = atomMeshes[b.to];
+    if (a1 && a2) drawBond(grp, a1.position, a2.position, b.type);
+  });
+
+  chamberScene.add(grp); chamberObject = grp;
+  chamberCamera.position.set(0, 1, 9);
+  chamberCamera.lookAt(0, 0, 0);
+
+  updateInfoPanelCompound(compound);
+}
+
+function createMiniElectrons(elData, ar) {
+  const g = new THREE.Group(); if (!elData) return g;
+  const v = window.getValenceElectrons(elData.n), R = ar * 1.8;
+  for (let i = 0; i < Math.min(v, 8); i++) {
+    const a = (i / Math.min(v,8)) * Math.PI * 2;
+    const e = new THREE.Mesh(new THREE.SphereGeometry(.06,8,8), new THREE.MeshBasicMaterial({ color:0x00e5ff }));
+    e.position.set(Math.cos(a)*R, 0, Math.sin(a)*R); g.add(e);
+  }
+  g.userData.rotSpeed = 1.5 + Math.random()*.5;
+  g.rotation.x = Math.random()*.5; g.rotation.z = Math.random()*.5;
+  g.userData.isMiniAtom = true; return g;
+}
+
+function drawBond(parent, p1, p2, type) {
+  const dir = new THREE.Vector3().subVectors(p2,p1);
+  const len = dir.length(), mid = new THREE.Vector3().addVectors(p1,p2).multiplyScalar(.5);
+  const ax  = dir.clone().normalize();
+  let perp  = new THREE.Vector3().crossVectors(ax, new THREE.Vector3(0,1,0));
+  if (perp.lengthSq() < .01) perp = new THREE.Vector3().crossVectors(ax, new THREE.Vector3(1,0,0));
+  perp.normalize();
+  (type===1?[0]:type===2?[-.18,.18]:[-.22,0,.22]).forEach(off => {
+    const cyl = new THREE.Mesh(
+      new THREE.CylinderGeometry(.07,.07,len,12),
+      new THREE.MeshStandardMaterial({ color:0xccddee, roughness:.35, metalness:.4, emissive:0x667788, emissiveIntensity:.15 })
+    );
+    cyl.position.copy(mid).add(perp.clone().multiplyScalar(off));
+    cyl.lookAt(p2.clone().add(perp.clone().multiplyScalar(off)));
+    cyl.rotateX(Math.PI/2); parent.add(cyl);
+  });
+}
+
+function makeTextSprite(text, scale=1) {
+  const cv=document.createElement('canvas'); cv.width=512; cv.height=128;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='rgba(8,10,26,.72)'; ctx.fillRect(0,0,512,128);
+  ctx.strokeStyle='rgba(0,212,255,.5)'; ctx.lineWidth=3; ctx.strokeRect(2,2,508,124);
+  ctx.font='bold 54px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#e6f6ff'; ctx.fillText(text,256,64);
+  const tex=new THREE.CanvasTexture(cv); tex.encoding=THREE.sRGBEncoding;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true }));
+  s.scale.set(scale*4,scale,1); return s;
+}
+
+// =============================================================
+// CLEAR CHAMBER (gumb "Očisti")
+// =============================================================
+function clearChamber() {
+  clearChamberScene();
+  clearMixer();
+  updateInfoPanelDefault();
+}
+
+// =============================================================
+// DISPOSE
+// =============================================================
+function disposeGroup(g) {
+  g.traverse(o => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.map)m.map.dispose();m.dispose();});
+  });
+}
+
+// =============================================================
+// MAIN LOOP
+// =============================================================
+let camTgtPos=null, camTgtLook=null, camAnimStart=0;
+const CAM_DUR=1.0;
+
+function animateCameraTo(pos,look) {
+  camTgtPos={from:camera.position.clone(),to:pos.clone()};
+  camTgtLook={from:controls.target.clone(),to:look.clone()};
+  camAnimStart=clock.getElapsedTime();
+}
+function updateCameraAnim() {
+  if (!camTgtPos) return;
+  const t=Math.min((clock.getElapsedTime()-camAnimStart)/CAM_DUR,1);
+  const e=1-Math.pow(1-t,3);
+  camera.position.lerpVectors(camTgtPos.from,camTgtPos.to,e);
+  controls.target.lerpVectors(camTgtLook.from,camTgtLook.to,e);
+  if (t>=1){camTgtPos=null;camTgtLook=null;}
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta(), t=clock.getElapsedTime();
+  updateCameraAnim();
+  updateHover();
+  controls.update();
+  renderer.render(scene, camera);
+
+  // Chamber animacija
+  if (chamberObject?.userData.isAtom) {
+    chamberObject.userData.shells?.forEach(s=>{s.rotation.y+=dt*(s.userData.rotSpeed||.5);});
+    if (chamberObject.userData.nucleus) chamberObject.userData.nucleus.rotation.y+=dt*.3;
+    chamberObject.children.forEach(ch=>{ if(ch.isSprite) ch.position.y+=Math.sin(t*.8)*0; });
+  }
+  if (chamberObject?.userData.isCompound) {
+    chamberObject.rotation.y+=dt*.28;
+    (chamberObject.userData.miniAtoms||[]).forEach(m=>{m.rotation.y+=dt*(m.userData.rotSpeed||1);});
+  }
+  if (chamberRenderer) chamberRenderer.render(chamberScene, chamberCamera);
+}
+
+// =============================================================
+// HOVER
+// =============================================================
+function updateHover() {
+  if (!currentObject || isDragging) return;
+  raycaster.setFromCamera(pointer, camera);
+  const cards = currentObject.children.filter(c=>c.userData.isCard);
+  const hits  = raycaster.intersectObjects(cards, false);
+
+  if (hoveredCard && hoveredCard !== hits[0]?.object) {
+    hoveredCard.position.z = hoveredCard.userData.basePos.z;
+    hoveredCard.scale.setScalar(1); hoveredCard = null;
+    canvasEl.style.cursor = 'grab';
+  }
+  if (hits[0] && hoveredCard !== hits[0].object) {
+    hoveredCard = hits[0].object;
+    hoveredCard.position.z = hoveredCard.userData.basePos.z + .55;
+    hoveredCard.scale.setScalar(1.13);
+    canvasEl.style.cursor = 'pointer';
+    showHoverTooltip(hoveredCard.userData.element);
+  } else if (!hits[0]) { hideHoverTooltip(); }
+}
+
+// =============================================================
+// PAN (custom — gore/dolje/lijevo/desno)
+// =============================================================
+function startPan(x,y) {
+  panState={x,y,camX:camera.position.x,camY:camera.position.y,tX:controls.target.x,tY:controls.target.y};
+}
+function updatePan(x,y) {
+  if (!panState) return;
+  const dist  = camera.position.distanceTo(controls.target);
+  const px    = (2*Math.tan(camera.fov*.5*Math.PI/180)*dist)/canvasEl.clientHeight;
+  const dx    = (x-panState.x)*px, dy = (y-panState.y)*px;
+  camera.position.x   = panState.camX-dx; camera.position.y   = panState.camY+dy;
+  controls.target.x   = panState.tX  -dx; controls.target.y   = panState.tY  +dy;
+  controls.update();
+}
+function endPan() { panState=null; }
+
+// =============================================================
+// DRAG & DROP s hintovima
+// =============================================================
+function getCardAtPointer(cx,cy) {
+  if (!currentObject) return null;
+  const rect = canvasEl.getBoundingClientRect();
+  raycaster.setFromCamera(
+    new THREE.Vector2(((cx-rect.left)/rect.width)*2-1, -((cy-rect.top)/rect.height)*2+1),
+    camera
+  );
+  const hits = raycaster.intersectObjects(currentObject.children.filter(c=>c.userData.isCard), false);
+  return hits.length ? hits[0].object.userData.element : null;
+}
+
+function onPointerDown(e) {
+  if (e.button!==undefined && e.button!==0) return;
+  const cx = e.touches?e.touches[0].clientX:e.clientX;
+  const cy = e.touches?e.touches[0].clientY:e.clientY;
+  const el = getCardAtPointer(cx,cy);
+  if (el) {
+    controls.enabled = false;
+    dragState = { element:el, startX:cx, startY:cy, initiated:false };
+  } else {
+    startPan(cx,cy);
+  }
+}
+
+function initiateDrag(cx,cy) {
+  if (!dragState) return;
+  isDragging = true; dragState.initiated = true;
+  canvasWrap.classList.add('dragging-element');
+
+  const el  = dragState.element;
+  const cat = window.CATEGORIES[el.cat];
+  const hex = '#'+cat.color.toString(16).padStart(6,'0');
+
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.borderColor = hex;
+  ghost.style.background  = hex+'22';
+  ghost.style.boxShadow   = `0 0 22px ${hex}cc,0 0 44px rgba(168,85,247,.35)`;
+  ghost.innerHTML = `<span class="ghost-sym">${el.s}</span><span class="ghost-name">${el.name}</span>`;
+  ghost.classList.add('active');
+  moveGhost(cx,cy);
+
+  document.getElementById('mixer-drop-zone')?.classList.add('active-drop');
+  showDragHints(el.s, cx, cy);
+}
+
+function moveGhost(x,y) {
+  const g = document.getElementById('drag-ghost');
+  g.style.left=x+'px'; g.style.top=y+'px';
+}
+
+function onPointerMove(e) {
+  const cx = e.touches?e.touches[0].clientX:e.clientX;
+  const cy = e.touches?e.touches[0].clientY:e.clientY;
+
+  const rect = canvasEl.getBoundingClientRect();
+  pointer.x = ((cx-rect.left)/rect.width)*2-1;
+  pointer.y = -((cy-rect.top)/rect.height)*2+1;
+
+  if (panState && !dragState) { updatePan(cx,cy); return; }
+  if (!dragState) return;
+
+  if (!dragState.initiated) {
+    const dx=cx-dragState.startX, dy=cy-dragState.startY;
+    if (Math.sqrt(dx*dx+dy*dy)>7) initiateDrag(cx,cy);
+    return;
+  }
+  moveGhost(cx,cy);
+}
+
+function onPointerUp(e) {
+  if (panState) endPan();
+  if (!dragState) { controls.enabled=true; return; }
+
+  const cx = e.changedTouches?e.changedTouches[0].clientX:e.clientX;
+  const cy = e.changedTouches?e.changedTouches[0].clientY:e.clientY;
+
+  const wasInitiated = dragState.initiated;
+  const el = dragState.element;
+
+  dragState=null; isDragging=false; controls.enabled=true;
+  canvasWrap.classList.remove('dragging-element');
+  document.getElementById('drag-ghost')?.classList.remove('active');
+  document.getElementById('mixer-drop-zone')?.classList.remove('active-drop');
+  hideDragHints();
+
+  if (!wasInitiated) { showAtom(el); return; }
+
+  const mixerEl = document.getElementById('mixer-section');
+  if (!mixerEl) return;
+  const rect = mixerEl.getBoundingClientRect();
+  if (cx>=rect.left && cx<=rect.right && cy>=rect.top && cy<=rect.bottom) {
+    animateDrop(el, cx, cy, ()=>{ addToMixerInternal(el.s); });
+  }
+}
+
+function cancelDrag() {
+  if (dragState) dragState=null;
+  if (panState)  panState=null;
+  isDragging=false; controls.enabled=true;
+  canvasWrap?.classList.remove('dragging-element');
+  document.getElementById('drag-ghost')?.classList.remove('active');
+  document.getElementById('mixer-drop-zone')?.classList.remove('active-drop');
+  hideDragHints();
+}
+
+// =============================================================
+// DRAG HINTS — mogući spojevi
+// =============================================================
+function getDragHints(symbol) {
+  // Gradimo hipotetički mixer: trenutni + novi element
+  const hypo = {};
+  mixer.forEach(s=>{ hypo[s]=(hypo[s]||0)+1; });
+  hypo[symbol] = (hypo[symbol]||0)+1;
+
+  const results = [];
+  window.COMPOUNDS.forEach(c => {
+    if (!(symbol in c.ingredients)) return; // mora sadržavati ovaj element
+
+    // Provjeri višak — imamo nešto što ovaj spoj ne treba?
+    const hasExcess = Object.keys(hypo).some(s => (c.ingredients[s]||0) < hypo[s]);
+
+    const missing = {};
+    let totalMissing = 0;
+    Object.entries(c.ingredients).forEach(([s,need]) => {
+      const have = hypo[s]||0;
+      if (have < need) { missing[s]=need-have; totalMissing+=need-have; }
+    });
+
+    // Prikaži samo ako nema viška ILI ako je potpuno točno
+    if (!hasExcess && totalMissing <= 3) {
+      results.push({ compound:c, missing, totalMissing });
+    }
+  });
+
+  return results.sort((a,b)=>a.totalMissing-b.totalMissing).slice(0,6);
+}
+
+function showDragHints(symbol, cx, cy) {
+  const hints = getDragHints(symbol);
+  const box   = document.getElementById('drag-hints');
+  if (!box) return;
+
+  if (hints.length === 0) { box.classList.remove('visible'); return; }
+
+  let html = `<div class="hint-title">Mogući spojevi s ${symbol}</div>`;
+  hints.forEach(h => {
+    const missingStr = Object.entries(h.missing)
+      .map(([s,n]) => n>1 ? `${n}× ${s}` : s).join(', ');
+    const badge = h.totalMissing === 0
+      ? `<span class="hint-badge match">Spreman!</span>`
+      : missingStr
+        ? `<span class="hint-badge missing">+ ${missingStr}</span>`
+        : '';
+    html += `<div class="hint-row">
+      <span class="hint-formula">${h.compound.formula}</span>
+      <span class="hint-name">${h.compound.name}</span>
+      ${badge}
+    </div>`;
+  });
+  box.innerHTML = html;
+
+  // Pozicioniranje iznad komore
+  const mixerRect = document.getElementById('mixer-section')?.getBoundingClientRect();
+  if (mixerRect) {
+    box.style.display = 'block'; // privremeno za mjerenje visine
+    const bh = box.offsetHeight;
+    box.style.display = '';
+    box.style.left = mixerRect.left + 'px';
+    box.style.top  = (mixerRect.top - bh - 8) + 'px';
+    box.style.width = mixerRect.width + 'px';
+  }
+  box.classList.add('visible');
+}
+
+function hideDragHints() {
+  document.getElementById('drag-hints')?.classList.remove('visible');
+}
+
+// =============================================================
+// DROP ANIMACIJA (luk + pad u komoru)
+// =============================================================
+function animateDrop(element, fromX, fromY, onComplete) {
+  const mixerEl = document.getElementById('mixer-section');
+  const rect    = mixerEl.getBoundingClientRect();
+  const targetX = rect.left + rect.width  * .5;
+  const targetY = rect.top  + rect.height * .45;
+
+  const cat = window.CATEGORIES[element.cat];
+  const hex = '#' + cat.color.toString(16).padStart(6,'0');
+  const r=(cat.color>>16)&255, g=(cat.color>>8)&255, b=cat.color&255;
+
+  const orb = document.createElement('div');
+  orb.className = 'drop-orb';
+  orb.textContent = element.s;
+  orb.style.cssText=`width:58px;height:58px;left:${fromX}px;top:${fromY}px;font-size:22px;color:#fff;
+    background:radial-gradient(circle at 35% 32%,rgba(255,255,255,.9) 0%,${hex} 38%,rgba(${Math.max(r-80,0)},${Math.max(g-80,0)},${Math.max(b-80,0)},1) 100%);
+    border:2px solid rgba(255,255,255,.55);
+    box-shadow:0 0 22px ${hex},0 0 44px ${hex}88,inset 0 0 12px rgba(255,255,255,.2);`;
+  document.body.appendChild(orb);
+
+  const trails = Array.from({length:5},(_,i)=>{
+    const t=document.createElement('div'); t.className='drop-trail';
+    const sz=58*(.45-i*.055);
+    t.style.cssText=`width:${sz}px;height:${sz}px;left:${fromX}px;top:${fromY}px;
+      background:radial-gradient(circle at 40% 38%,${hex}cc 0%,${hex}44 60%,transparent 100%);
+      box-shadow:0 0 10px ${hex}88;`;
+    document.body.appendChild(t); return t;
+  });
+
+  const dx=targetX-fromX, dy=targetY-fromY;
+  const arcX=fromX+dx*.4+(Math.random()-.5)*30;
+  const arcY=fromY+Math.min(dy*.1,-50);
+  const duration=Math.min(680,Math.max(400,Math.sqrt(dx*dx+dy*dy)*.7));
+  const start=performance.now();
+
+  (function tick(now) {
+    const raw=Math.min((now-start)/duration,1);
+    const bx=(1-raw)*(1-raw)*fromX+2*(1-raw)*raw*arcX+raw*raw*targetX;
+    const by=(1-raw)*(1-raw)*fromY+2*(1-raw)*raw*arcY+raw*raw*targetY;
+    const sc=raw<.7?1+raw*.15:Math.max(1.15-(raw-.7)/.3*1.3,.05);
+    const op=raw<.8?1:1-(raw-.8)/.2;
+    orb.style.left=bx+'px'; orb.style.top=by+'px';
+    orb.style.transform=`translate(-50%,-50%) scale(${sc})`; orb.style.opacity=op;
+    trails.forEach((tr,i)=>{
+      const d=(i+1)/5*.25, tr2=Math.max(raw-d,0)/Math.max(1-d,.001);
+      const t2=Math.min(tr2,1);
+      const tbx=(1-t2)*(1-t2)*fromX+2*(1-t2)*t2*arcX+t2*t2*targetX;
+      const tby=(1-t2)*(1-t2)*fromY+2*(1-t2)*t2*arcY+t2*t2*targetY;
+      tr.style.left=tbx+'px'; tr.style.top=tby+'px';
+      tr.style.transform=`translate(-50%,-50%) scale(${Math.max(1-i*.12-raw*.6,0)})`;
+      tr.style.opacity=Math.max(1-raw*1.4,0);
+    });
+    if (raw<1) { requestAnimationFrame(tick); return; }
+    orb.remove(); trails.forEach(t=>t.remove());
+    const ring=document.createElement('div'); ring.className='burst-ring';
+    ring.style.cssText=`left:${targetX}px;top:${targetY}px;width:36px;height:36px;border-color:${hex};`;
+    document.body.appendChild(ring); setTimeout(()=>ring.remove(),700);
+    triggerMistBurst(false);
+    if (onComplete) onComplete();
+  })(start);
+}
+
+// =============================================================
+// MIXER
+// =============================================================
+function addToMixerInternal(symbol) {
+  if (mixer.length>=12) { showMessage('Komora je puna! Max 12 atoma.','warn'); return; }
+  mixer.push(symbol); renderMixer();
+  setTimeout(()=>autoTryFormCompound(),350);
+}
+
+function addToMixer(symbol) {
+  if (mixer.length>=12) { showMessage('Komora je puna!','warn'); return; }
+  mixer.push(symbol); renderMixer();
+  triggerMistBurst(false);
+  setTimeout(()=>autoTryFormCompound(),300);
+}
+
+function removeFromMixer(index) { mixer.splice(index,1); renderMixer(); }
+
+function clearMixer() {
+  mixer=[]; renderMixer(); hideResult();
+}
+
+function autoTryFormCompound() {
+  if (mixer.length<2) return;
+  const ingr={};
+  mixer.forEach(s=>{ingr[s]=(ingr[s]||0)+1;});
+  const match=window.COMPOUNDS.find(c=>{
+    const k1=Object.keys(c.ingredients).sort(), k2=Object.keys(ingr).sort();
+    if (k1.length!==k2.length||!k1.every((k,i)=>k===k2[i])) return false;
+    return k1.every(k=>c.ingredients[k]===ingr[k]);
+  });
+  if (match) triggerCompoundEffect(()=>{
+    showCompound(match);
+    showMessage('✨ Spoj nastao: '+match.formula+' – '+match.name,'magic');
+  });
+}
+
+function renderMixer() {
+  const el=document.getElementById('mixer-items');
+  const hint=document.getElementById('drop-hint');
+  if (!el) return;
+  if (mixer.length===0) { el.innerHTML=''; hint?.classList.remove('hidden'); return; }
+  hint?.classList.add('hidden');
+  el.innerHTML=mixer.map((s,i)=>{
+    const ed=window.ELEMENTS.find(e=>e.s===s);
+    const cat=window.CATEGORIES[ed?.cat||'nonmetal'];
+    const c='#'+cat.color.toString(16).padStart(6,'0');
+    return `<span class="mixer-chip" style="background:${c}22;border-color:${c}" onclick="removeFromMixer(${i})" title="Ukloni">${s}<small>×</small></span>`;
+  }).join('');
+}
+
+// =============================================================
+// EFEKTI
+// =============================================================
+function triggerCompoundEffect(callback) {
+  const flash=document.createElement('div'); flash.className='magic-flash';
+  document.body.appendChild(flash); setTimeout(()=>flash.remove(),800);
+  const sec=document.getElementById('mixer-section');
+  if (sec) {
+    sec.style.transition='box-shadow .1s';
+    sec.style.boxShadow='0 0 60px rgba(168,85,247,.95),0 0 100px rgba(0,212,255,.5)';
+    setTimeout(()=>{sec.style.boxShadow='';},700);
+  }
+  triggerMistBurst(true);
+  setTimeout(callback,480);
+}
+
+// =============================================================
+// MAGIC CHAMBER — magla + tesla
+// =============================================================
+let mistCanvas,mistCtx,mistParticles=[],teslaTimer=0;
+
+function initMagicChamber() {
+  mistCanvas=document.getElementById('mist-canvas');
+  if (!mistCanvas) return;
+  resizeMistCanvas();
+  for (let i=0;i<28;i++) mistParticles.push(newMistParticle(true));
+  animateMagicChamber();
+}
+function resizeMistCanvas() {
+  if (!mistCanvas) return;
+  const r=mistCanvas.parentElement.getBoundingClientRect();
+  mistCanvas.width=r.width||282; mistCanvas.height=r.height||282;
+}
+function newMistParticle(randomY=false) {
+  const w=mistCanvas?.width||282, h=mistCanvas?.height||282;
+  return { x:Math.random()*w, y:randomY?Math.random()*h:h+10, r:12+Math.random()*34,
+    vx:(Math.random()-.5)*.32, vy:-(0.1+Math.random()*.3),
+    opacity:.04+Math.random()*.08, hue:Math.random()<.6?276:192,
+    life:0, maxLife:130+Math.random()*200 };
+}
+function animateMagicChamber() {
+  requestAnimationFrame(animateMagicChamber);
+  if (!mistCtx) { if (!mistCanvas) return; mistCtx=mistCanvas.getContext('2d'); }
+  const w=mistCanvas.width, h=mistCanvas.height;
+  mistCtx.clearRect(0,0,w,h);
+  for (let i=mistParticles.length-1;i>=0;i--) {
+    const p=mistParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life++;
+    const a=p.life<30?(p.life/30)*p.opacity:p.life>p.maxLife-30?((p.maxLife-p.life)/30)*p.opacity:p.opacity;
+    const gr=mistCtx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+    gr.addColorStop(0,`hsla(${p.hue},80%,65%,${a})`); gr.addColorStop(1,`hsla(${p.hue},80%,65%,0)`);
+    mistCtx.beginPath(); mistCtx.arc(p.x,p.y,p.r,0,Math.PI*2); mistCtx.fillStyle=gr; mistCtx.fill();
+    if (p.life>=p.maxLife||p.y<-p.r) mistParticles[i]=newMistParticle(false);
+  }
+  teslaTimer++;
+  if (teslaTimer%20===0) generateTeslaArc();
+  if (teslaTimer%8===0)  fadeOldArcs();
+}
+function triggerMistBurst(intense=false) {
+  const count=intense?20:9;
+  for (let i=0;i<count;i++) {
+    const p=newMistParticle(false);
+    p.x=(mistCanvas?.width||282)*(.25+Math.random()*.5);
+    p.r=intense?28+Math.random()*56:16+Math.random()*36;
+    p.opacity=intense?.14+Math.random()*.14:.07+Math.random()*.09;
+    p.vy=-(0.5+Math.random()*1.1);
+    mistParticles.push(p);
+  }
+}
+function generateTeslaArc() {
+  const svg=document.getElementById('tesla-svg'), arcs=document.getElementById('tesla-arcs');
+  if (!svg||!arcs||Math.random()<.42) return;
+  const w=svg.clientWidth||282, h=svg.clientHeight||282;
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  const edge=Math.floor(Math.random()*4); let x1,y1;
+  switch(edge){case 0:x1=Math.random()*w;y1=0;break;case 1:x1=Math.random()*w;y1=h;break;case 2:x1=0;y1=Math.random()*h;break;default:x1=w;y1=Math.random()*h;}
+  const x2=w*.3+Math.random()*w*.4, y2=h*.2+Math.random()*h*.6;
+  let d=`M ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  const steps=4+Math.floor(Math.random()*5);
+  for(let i=1;i<steps;i++){const t=i/steps;d+=` L ${(x1+(x2-x1)*t+(Math.random()-.5)*40).toFixed(1)} ${(y1+(y2-y1)*t+(Math.random()-.5)*24).toFixed(1)}`;}
+  d+=` L ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+  const hue=Math.random()<.6?183:272;
+  path.setAttribute('d',d); path.setAttribute('stroke',`hsla(${hue},100%,76%,${.3+Math.random()*.58})`);
+  path.setAttribute('stroke-width',(.7+Math.random()*1.6).toFixed(1));
+  path.setAttribute('fill','none'); path.setAttribute('stroke-linecap','round');
+  path.setAttribute('data-born',Date.now().toString()); arcs.appendChild(path);
+}
+function fadeOldArcs() {
+  const arcs=document.getElementById('tesla-arcs'); if(!arcs) return;
+  const now=Date.now();
+  Array.from(arcs.children).forEach(a=>{
+    const age=now-parseInt(a.getAttribute('data-born')||'0',10);
+    if (age>200) a.remove(); else a.style.opacity=(1-age/200).toFixed(2);
+  });
+}
+
+// =============================================================
+// INFO PANELS
+// =============================================================
+let legendOpen=false;
+
+function toggleLegend() {
+  legendOpen=!legendOpen;
+  document.getElementById('legend-panel')?.classList.toggle('open',legendOpen);
+  document.getElementById('btn-legend')?.classList.toggle('open',legendOpen);
+}
+
+function updateInfoPanelDefault() {
+  const el=document.getElementById('info-panel'); if(!el) return;
+  el.innerHTML=`
+    <h3>Periodni sustav 3D</h3>
+    <p class="muted" style="margin-top:5px">Klikni element za 3D atom prikaz u komori.</p>
+    <p class="muted">Povuci element u <strong style="color:#a855f7">komoru</strong> za stvaranje spoja.</p>
+    <p class="muted" style="margin-top:3px">✥ Povlači pozadinu = pomak tablice</p>
+    <button class="btn-legend" id="btn-legend" onclick="toggleLegend()">
+      ☰ Legenda kategorija <span class="arrow">▼</span>
+    </button>
+    <div class="legend-panel${legendOpen?' open':''}" id="legend-panel">
+      <div class="legend">
+        ${Object.entries(window.CATEGORIES).map(([k,v])=>{
+          const c='#'+v.color.toString(16).padStart(6,'0');
+          return `<div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${v.name}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  if(legendOpen){document.getElementById('btn-legend')?.classList.add('open');}
+}
+
+function updateInfoPanelAtom(el) {
+  const panel=document.getElementById('info-panel'); if(!panel) return;
+  const cat=window.CATEGORIES[el.cat];
+  const color='#'+cat.color.toString(16).padStart(6,'0');
+  const shells=window.getBohrShells(el.n);
+  panel.innerHTML=`
+    <div class="info-header" style="border-color:${color}">
+      <div class="el-symbol-big" style="background:${color}22;border-color:${color}">
+        <span class="num">${el.n}</span><span class="sym">${el.s}</span>
+      </div>
+      <div><h3>${el.name}</h3><p class="muted">${cat.name} · ${el.phase}</p></div>
+    </div>
+    <div class="info-grid">
+      <div><label>Atomska masa</label><span>${el.m}</span></div>
+      <div><label>Skupina / Per.</label><span>${el.grp} / ${el.per}</span></div>
+      <div><label>Talište</label><span>${el.mp??'—'}${el.mp!=null?' °C':''}</span></div>
+      <div><label>Vrelište</label><span>${el.bp??'—'}${el.bp!=null?' °C':''}</span></div>
+    </div>
+    <div class="info-block"><label>El. konfiguracija</label><code>${el.ec}</code></div>
+    <div class="info-block"><label>Ljuske (Bohr)</label><code>${shells.join(' · ')}</code></div>
+    <div class="info-block"><label>Otkriće</label><p>${el.disc}</p></div>
+    <div class="info-block"><label>Primjena</label><p>${el.use}</p></div>
+    <div class="info-actions">
+      <button onclick="addToMixer('${el.s}')">✦ Dodaj u komoru</button>
+      <button onclick="clearChamber()" class="secondary">← Natrag</button>
+    </div>`;
+}
+
+function updateInfoPanelCompound(c) {
+  const panel=document.getElementById('info-panel'); if(!panel) return;
+  panel.innerHTML=`
+    <div class="info-header" style="border-color:#a855f7">
+      <div class="el-symbol-big" style="background:#a855f722;border-color:#a855f7">
+        <span class="formula">${c.formula}</span>
+      </div>
+      <div><h3>${c.name}</h3><p class="muted">Kemijski spoj</p></div>
+    </div>
+    <div class="info-grid">
+      <div><label>Vrsta veze</label><span>${c.bondType}</span></div>
+      <div><label>Geometrija</label><span>${c.geometry}</span></div>
+    </div>
+    <div class="info-block"><label>Sastojci</label>
+      <code>${Object.entries(c.ingredients).map(([k,v])=>v>1?k+v:k).join(' + ')}</code>
+    </div>
+    <div class="info-block"><label>Opis</label><p>${c.description}</p></div>
+    <div class="info-block"><label>Primjena</label><p>${c.uses}</p></div>
+    <div class="info-actions">
+      <button onclick="clearChamber()" class="secondary">← Natrag / Očisti</button>
+    </div>`;
+}
+
+function showHoverTooltip(el) {
+  const t=document.getElementById('hover-tooltip'); if(!t) return;
+  t.style.display='block';
+  t.innerHTML=`<strong>${el.s}</strong> · ${el.name} <small>(${el.n})</small>`;
+}
+function hideHoverTooltip() {
+  const t=document.getElementById('hover-tooltip'); if(t) t.style.display='none';
+}
+function showMessage(msg,type='info') {
+  const el=document.getElementById('message'); if(!el) return;
+  el.textContent=msg; el.className='message-bar visible '+type;
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('visible'),4000);
+}
+function hideResult() { document.getElementById('message')?.classList.remove('visible'); }
+
+// =============================================================
+// SETUP
+// =============================================================
+function setupUI() { updateInfoPanelDefault(); renderMixer(); }
+
+function setupListeners() {
+  canvasEl.addEventListener('pointerdown', onPointerDown, {passive:false});
+  canvasEl.addEventListener('pointermove', onPointerMove, {passive:true});
+  canvasEl.addEventListener('pointerup',   onPointerUp,   {passive:true});
+  canvasEl.addEventListener('pointercancel', cancelDrag,  {passive:true});
+  canvasEl.addEventListener('touchstart',  onPointerDown, {passive:false});
+  canvasEl.addEventListener('touchmove',   onPointerMove, {passive:true});
+  canvasEl.addEventListener('touchend',    onPointerUp,   {passive:true});
+  window.addEventListener('pointerup', e=>{ if(dragState||panState) onPointerUp(e); }, {passive:true});
+  window.addEventListener('resize', onResize);
+  document.getElementById('btn-clear-chamber')?.addEventListener('click', clearChamber);
+  const search=document.getElementById('search');
+  if (search) search.addEventListener('input', e=>{
+    const q=e.target.value.trim().toLowerCase();
+    currentObject?.children.forEach(card=>{
+      if (!card.userData.isCard) return;
+      const el=card.userData.element;
+      const match=!q||el.s.toLowerCase().includes(q)||el.name.toLowerCase().includes(q)||String(el.n)===q;
+      card.material.forEach((m,i)=>{if(i===4){m.opacity=match?1:.11;m.transparent=!match;}});
+      card.scale.setScalar(match?1:.92);
+    });
+  });
+}
+
+function onResize() {
+  const w=canvasEl.clientWidth, h=canvasEl.clientHeight;
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h,false);
+  const cc=document.getElementById('chamber-canvas');
+  if (cc&&chamberRenderer) {
+    const cw=cc.clientWidth, ch=cc.clientHeight;
+    if (cw>0&&ch>0) {
+      chamberCamera.aspect=cw/ch; chamberCamera.updateProjectionMatrix();
+      chamberRenderer.setSize(cw,ch,false);
+    }
+  }
+  resizeMistCanvas();
+}
+
+// =============================================================
+// EXPORTS
+// =============================================================
+window.addToMixer      = addToMixer;
+window.removeFromMixer = removeFromMixer;
+window.clearMixer      = clearMixer;
+window.clearChamber    = clearChamber;
+window.toggleLegend    = toggleLegend;
+
+window.addEventListener('load', ()=>{
+  if (typeof THREE==='undefined') {
+    document.getElementById('loading').textContent='Greška: Three.js se ne učitava.';
+    return;
+  }
+  init();
+});

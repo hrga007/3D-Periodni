@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Periodni sustav 3D · Interaktivna kemija</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">⚛</span>
+        <span class="brand-text">Periodni sustav <strong>3D</strong></span>
+      </div>
+      <div class="topbar-actions">
+        <input id="search" type="text" placeholder="Traži element…" autocomplete="off" />
+        <button id="btn-clear-chamber" class="btn-action" title="Očisti komoru">
+          <span>⊘</span> <span class="btn-label">Očisti</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Periodni sustav — uvijek vidljiv -->
+      <div class="canvas-wrap">
+        <canvas id="canvas"></canvas>
+        <div id="loading" class="loading-overlay">Učitavanje 3D scene…</div>
+        <div id="hover-tooltip" class="hover-tooltip"></div>
+        <div id="message" class="message-bar"></div>
+        <div class="canvas-hint">
+          <span>📌 Klik = detalji u komori</span>
+          <span>✋ Povuci element u komoru</span>
+          <span>🔍 Kotač = zoom &nbsp;✥ Drag = pomak</span>
+        </div>
+      </div>
+
+      <!-- Desni panel: info + kocka komora -->
+      <div class="right-panel">
+        <aside id="info-panel" class="info-panel"></aside>
+
+        <!-- 3D kocka komora -->
+        <div class="cube-wrapper">
+          <div class="cube-face-top">
+            <div class="cube-top-grid"></div>
+            <div class="cube-top-label">✦ ČAROBNA KOMORA ✦</div>
+          </div>
+          <div class="cube-face-right"></div>
+
+          <section class="mixer" id="mixer-section">
+            <!-- Three.js 3D prikaz (atom / spoj) -->
+            <canvas id="chamber-canvas" class="chamber-canvas"></canvas>
+            <!-- Magla i tesla -->
+            <canvas id="mist-canvas" class="mist-canvas"></canvas>
+            <svg class="tesla-overlay" id="tesla-svg" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter id="glow-f">
+                  <feGaussianBlur stdDeviation="2.5" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <g id="tesla-arcs" filter="url(#glow-f)"></g>
+            </svg>
+
+            <!-- UI sloj -->
+            <div class="mixer-inner">
+              <div id="mixer-drop-zone" class="mixer-drop-zone">
+                <div id="mixer-items" class="mixer-items"></div>
+                <div class="drop-hint" id="drop-hint">
+                  <span class="drop-icon">⬇</span>
+                  <span>Povuci element ovdje</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <!-- /cube-wrapper -->
+      </div>
+      <!-- /right-panel -->
+    </main>
+
+    <footer class="footer">
+      <span>Three.js · Statična stranica · Sve animacije u pregledniku</span>
+    </footer>
+  </div>
+
+  <!-- Drag ghost i hintovi -->
+  <div id="drag-ghost" class="drag-ghost"></div>
+  <div id="drag-hints" class="drag-hints"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="data/elements.js"></script>
+  <script src="data/compounds.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
