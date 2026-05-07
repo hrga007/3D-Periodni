@@ -9,14 +9,14 @@
 let scene, camera, renderer, controls;
 let raycaster, pointer;
 let clock = new THREE.Clock();
-let currentObject = null;   // uvijek tableGroup
+let currentObject = null;
 let hoveredCard   = null;
 let canvasEl, canvasWrap;
 
 // ── Chamber renderer ─────────────────────────────────────────
 let chamberScene, chamberCamera, chamberRenderer;
-let chamberObject = null;   // atom ili spoj unutar kocke
-let chamberMode   = 'empty'; // 'empty' | 'atom' | 'compound'
+let chamberObject = null;
+let chamberMode   = 'empty';
 
 // ── Interaction state ────────────────────────────────────────
 let dragState  = null;
@@ -25,6 +25,11 @@ let panState   = null;
 
 // ── Mixer ────────────────────────────────────────────────────
 let mixer = [];
+
+// ── Mobile ───────────────────────────────────────────────────
+let isMobile = false;
+let chamberState = 'standard';
+let activeCategory = null;
 
 const SPACING   = 1.65;
 const CARD_SIZE = 1.45;
@@ -35,6 +40,8 @@ const CARD_SIZE = 1.45;
 function init() {
   canvasEl   = document.getElementById('canvas');
   canvasWrap = document.querySelector('.canvas-wrap');
+
+  checkMobile();
 
   // ── Glavna scena ──────────────────────────────────────────
   scene = new THREE.Scene();
@@ -67,12 +74,10 @@ function init() {
   pointer   = new THREE.Vector2(-9999, -9999);
 
   buildTable();
-
-  // ── Chamber scena ─────────────────────────────────────────
   initChamberRenderer();
-
   setupUI();
   setupListeners();
+  setupChamberSwipe();
   initMagicChamber();
   animate();
   hideLoading();
@@ -103,6 +108,22 @@ function hideLoading() {
 }
 
 // =============================================================
+// MOBILNA DETEKCIJA
+// =============================================================
+function checkMobile() {
+  isMobile = window.innerWidth <= 900;
+}
+
+// =============================================================
+// HAPTIC FEEDBACK
+// =============================================================
+function haptic(type = 'light') {
+  if (!navigator.vibrate) return;
+  const patterns = { light: 10, medium: 25, heavy: [40, 20, 40] };
+  navigator.vibrate(patterns[type] || 10);
+}
+
+// =============================================================
 // CHAMBER RENDERER
 // =============================================================
 function initChamberRenderer() {
@@ -110,7 +131,6 @@ function initChamberRenderer() {
   if (!cc) return;
 
   chamberScene = new THREE.Scene();
-  // Bez pozadine — transparentno (alpha:true), magla vidljiva iza
 
   const cw = cc.clientWidth  || 282;
   const ch = cc.clientHeight || 282;
@@ -135,6 +155,15 @@ function clearChamberScene() {
     chamberObject = null;
   }
   chamberMode = 'empty';
+  setChamberLabel('', '');
+}
+
+function setChamberLabel(formula, name) {
+  const el = document.getElementById('chamber-label');
+  if (!el) return;
+  if (!formula) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+  el.innerHTML = `<span class="chamber-label-formula">${formula}</span><span class="chamber-label-name">${name}</span>`;
+  el.classList.add('visible');
 }
 
 // =============================================================
@@ -145,54 +174,55 @@ function makeCardTexture(el) {
   cv.width = 256; cv.height = 256;
   const ctx = cv.getContext('2d');
 
-  const cat = window.CATEGORIES[el.cat];
-  const hex = '#' + cat.color.toString(16).padStart(6, '0');
+  const cat = window.CATEGORIES[el.cat] || window.CATEGORIES.nonmetal;
   const r = (cat.color >> 16) & 255, g = (cat.color >> 8) & 255, b = cat.color & 255;
+  const li = v => Math.min(255, Math.round(v + (255 - v) * 0.28));
+  const dk = v => Math.max(0, Math.round(v * 0.75));
 
-  ctx.fillStyle = '#07091a'; ctx.fillRect(0, 0, 256, 256);
+  // === Pozadina: flat pastelna s blagim gradijentom ===
+  const bg = ctx.createLinearGradient(0, 8, 0, 248);
+  bg.addColorStop(0,   `rgb(${li(r)},${li(g)},${li(b)})`);
+  bg.addColorStop(0.5, `rgb(${r},${g},${b})`);
+  bg.addColorStop(1,   `rgb(${dk(r)},${dk(g)},${dk(b)})`);
+  roundRect(ctx, 8, 8, 240, 240, 22);
+  ctx.fillStyle = bg; ctx.fill();
 
-  const bg = ctx.createRadialGradient(85, 65, 15, 128, 128, 148);
-  bg.addColorStop(0,   `rgba(${Math.min(r+90,255)},${Math.min(g+90,255)},${Math.min(b+90,255)},.95)`);
-  bg.addColorStop(0.4, `rgba(${r},${g},${b},.88)`);
-  bg.addColorStop(0.82,`rgba(${Math.max(r-55,0)},${Math.max(g-55,0)},${Math.max(b-55,0)},.78)`);
-  bg.addColorStop(1,   `rgba(${Math.max(r-100,0)},${Math.max(g-100,0)},${Math.max(b-100,0)},.5)`);
-  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = bg; ctx.fill();
+  // === Gornji sjaj (stakleni efekt) ===
+  const shine = ctx.createLinearGradient(0, 8, 0, 148);
+  shine.addColorStop(0, 'rgba(255,255,255,0.22)');
+  shine.addColorStop(1, 'rgba(255,255,255,0)');
+  roundRect(ctx, 8, 8, 240, 240, 22);
+  ctx.fillStyle = shine; ctx.fill();
 
-  const gl = ctx.createLinearGradient(0,0,256,256);
-  gl.addColorStop(0,'rgba(255,255,255,.13)'); gl.addColorStop(.5,'rgba(255,255,255,.02)'); gl.addColorStop(1,'rgba(0,0,0,.22)');
-  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = gl; ctx.fill();
+  // === Rub: bijeli, poluproziran ===
+  ctx.strokeStyle = 'rgba(255,255,255,0.30)';
+  ctx.lineWidth = 2.5;
+  roundRect(ctx, 8, 8, 240, 240, 22);
+  ctx.stroke();
 
-  ctx.shadowColor = hex; ctx.shadowBlur = 14;
-  ctx.strokeStyle = hex + 'dd'; ctx.lineWidth = 3;
-  roundRect(ctx,8,8,240,240,16); ctx.stroke(); ctx.shadowBlur = 0;
+  // === Atomski broj — gore lijevo ===
+  ctx.font = 'bold 22px "Segoe UI",Arial,sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.fillText(el.n.toString(), 18, 18);
 
-  const sp = ctx.createRadialGradient(52,42,4,78,66,72);
-  sp.addColorStop(0,'rgba(255,255,255,.58)'); sp.addColorStop(.5,'rgba(255,255,255,.1)'); sp.addColorStop(1,'rgba(255,255,255,0)');
-  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = sp; ctx.fill();
+  // === Simbol — veliko, centrirano ===
+  ctx.font = 'bold 92px "Segoe UI",Arial,sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(el.s, 128, 128);
 
-  const sh = ctx.createLinearGradient(0,170,0,248);
-  sh.addColorStop(0,'rgba(0,0,0,0)'); sh.addColorStop(1,'rgba(0,0,0,.48)');
-  roundRect(ctx,8,8,240,240,16); ctx.fillStyle = sh; ctx.fill();
+  // === Naziv — ispod simbola ===
+  const nSz = el.name.length > 9 ? 14 : el.name.length > 6 ? 17 : 19;
+  ctx.font = `600 ${nSz}px "Segoe UI",Arial,sans-serif`;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = 'rgba(255,255,255,0.93)';
+  ctx.fillText(el.name, 128, 194);
 
-  ctx.globalAlpha = .05;
-  for (let y2=12; y2<244; y2+=6) { ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillRect(12,y2,232,1); }
-  ctx.globalAlpha = 1;
-
-  ctx.font='600 22px "Segoe UI",sans-serif'; ctx.textAlign='left';
-  ctx.fillStyle='rgba(255,255,255,.85)'; ctx.fillText(el.n.toString(),20,40);
-
-  ctx.shadowColor='rgba(255,255,255,.38)'; ctx.shadowBlur=10;
-  ctx.font='bold 108px "Segoe UI",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillStyle='#fff'; ctx.fillText(el.s,128,138); ctx.shadowBlur=0;
-
-  ctx.font='500 20px "Segoe UI",sans-serif'; ctx.fillStyle='rgba(255,255,255,.92)'; ctx.textBaseline='alphabetic';
-  ctx.fillText(el.name,128,200);
-  ctx.font='400 15px "Segoe UI",sans-serif'; ctx.fillStyle='rgba(255,255,255,.52)';
-  ctx.fillText(el.m.toString(),128,223);
-
-  const bar = ctx.createLinearGradient(20,232,236,232);
-  bar.addColorStop(0,'transparent'); bar.addColorStop(.25,hex); bar.addColorStop(.75,hex); bar.addColorStop(1,'transparent');
-  ctx.globalAlpha=.65; ctx.fillStyle=bar; ctx.fillRect(20,234,216,3); ctx.globalAlpha=1;
+  // === Atomska masa — dno ===
+  ctx.font = '400 14px "Segoe UI",Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.62)';
+  ctx.fillText(el.m.toString(), 128, 220);
 
   const tex = new THREE.CanvasTexture(cv);
   tex.encoding = THREE.sRGBEncoding; return tex;
@@ -214,22 +244,23 @@ function shade(hex, lum) {
 }
 
 // =============================================================
-// BUILD TABLE (glavna scena — nikad se ne briše)
+// BUILD TABLE
 // =============================================================
 function buildTable() {
   const grp = new THREE.Group(); grp.name = 'tableGroup';
   window.ELEMENTS.forEach(el => {
     const tex = makeCardTexture(el);
     const cat = window.CATEGORIES[el.cat];
+    const edgeCol = new THREE.Color(cat.color).multiplyScalar(0.55);
     const card = new THREE.Mesh(
-      new THREE.BoxGeometry(CARD_SIZE, CARD_SIZE, 0.2),
+      new THREE.BoxGeometry(CARD_SIZE, CARD_SIZE, 0.12),
       [
-        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
-        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
-        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
-        new THREE.MeshStandardMaterial({ color:cat.color, roughness:.4, metalness:.6, emissive:cat.color, emissiveIntensity:.08 }),
-        new THREE.MeshStandardMaterial({ map:tex, roughness:.35, metalness:.5 }),
-        new THREE.MeshStandardMaterial({ color:0x181a2e, roughness:.8, metalness:.2 })
+        new THREE.MeshBasicMaterial({ color: edgeCol }),
+        new THREE.MeshBasicMaterial({ color: edgeCol }),
+        new THREE.MeshBasicMaterial({ color: edgeCol }),
+        new THREE.MeshBasicMaterial({ color: edgeCol }),
+        new THREE.MeshBasicMaterial({ map: tex }),
+        new THREE.MeshBasicMaterial({ color: 0x0d0f22 })
       ]
     );
     const x = (el.col - 9.5) * SPACING;
@@ -239,8 +270,8 @@ function buildTable() {
     card.position.set(x, y, 0);
     card.userData.element = el; card.userData.isCard = true;
     card.userData.basePos = card.position.clone();
-    card.rotation.y = (el.n % 5 - 2) * .012;
-    card.rotation.x = (el.n % 3 - 1) * .008;
+    card.rotation.y = 0;
+    card.rotation.x = 0;
     grp.add(card);
   });
   scene.add(grp); currentObject = grp;
@@ -300,16 +331,19 @@ function showAtom(element) {
 
   chamberScene.add(grp); chamberObject = grp;
 
-  // Prilagodi kameru prema broju ljuski
   const camDist = Math.max(8, 4.5 + shells.length * 2.2);
   chamberCamera.position.set(0, 0, camDist);
   chamberCamera.lookAt(0, 0, 0);
 
+  setChamberLabel(element.s, element.name);
   updateInfoPanelAtom(element);
+
+  // Na mobu: kratka obavijest jer je info panel skriven
+  if (isMobile) showMessage(`⚛ ${element.s} · ${element.name}`, 'info');
 }
 
 // =============================================================
-// SPOJ — prikazuje se u chamber sceni
+// SPOJ
 // =============================================================
 function showCompound(compound) {
   clearChamberScene(); chamberMode = 'compound';
@@ -349,6 +383,7 @@ function showCompound(compound) {
   chamberCamera.position.set(0, 1, 9);
   chamberCamera.lookAt(0, 0, 0);
 
+  setChamberLabel(compound.formula, compound.name);
   updateInfoPanelCompound(compound);
 }
 
@@ -396,7 +431,7 @@ function makeTextSprite(text, scale=1) {
 }
 
 // =============================================================
-// CLEAR CHAMBER (gumb "Očisti")
+// CLEAR CHAMBER
 // =============================================================
 function clearChamber() {
   clearChamberScene();
@@ -442,11 +477,9 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 
-  // Chamber animacija
   if (chamberObject?.userData.isAtom) {
     chamberObject.userData.shells?.forEach(s=>{s.rotation.y+=dt*(s.userData.rotSpeed||.5);});
     if (chamberObject.userData.nucleus) chamberObject.userData.nucleus.rotation.y+=dt*.3;
-    chamberObject.children.forEach(ch=>{ if(ch.isSprite) ch.position.y+=Math.sin(t*.8)*0; });
   }
   if (chamberObject?.userData.isCompound) {
     chamberObject.rotation.y+=dt*.28;
@@ -479,7 +512,7 @@ function updateHover() {
 }
 
 // =============================================================
-// PAN (custom — gore/dolje/lijevo/desno)
+// PAN
 // =============================================================
 function startPan(x,y) {
   panState={x,y,camX:camera.position.x,camY:camera.position.y,tX:controls.target.x,tY:controls.target.y};
@@ -496,7 +529,7 @@ function updatePan(x,y) {
 function endPan() { panState=null; }
 
 // =============================================================
-// DRAG & DROP s hintovima
+// DRAG & DROP
 // =============================================================
 function getCardAtPointer(cx,cy) {
   if (!currentObject) return null;
@@ -509,6 +542,21 @@ function getCardAtPointer(cx,cy) {
   return hits.length ? hits[0].object.userData.element : null;
 }
 
+// Projekcija 3D kartice na 2D ekran
+function getCardScreenPos(element) {
+  if (!currentObject || !canvasEl) return null;
+  const card = currentObject.children.find(c => c.userData.element?.n === element.n);
+  if (!card) return null;
+  const v = new THREE.Vector3();
+  v.setFromMatrixPosition(card.matrixWorld);
+  v.project(camera);
+  const rect = canvasEl.getBoundingClientRect();
+  const x = (v.x + 1) / 2 * rect.width + rect.left;
+  const y = -(v.y - 1) / 2 * rect.height + rect.top;
+  if (x > rect.left - 50 && x < rect.right + 50 && y > rect.top - 50 && y < rect.bottom + 50) return { x, y };
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 3 };
+}
+
 function onPointerDown(e) {
   if (e.button!==undefined && e.button!==0) return;
   const cx = e.touches?e.touches[0].clientX:e.clientX;
@@ -517,6 +565,7 @@ function onPointerDown(e) {
   if (el) {
     controls.enabled = false;
     dragState = { element:el, startX:cx, startY:cy, initiated:false };
+    if (isMobile) startLongPress(cx, cy, el);
   } else {
     startPan(cx,cy);
   }
@@ -524,6 +573,7 @@ function onPointerDown(e) {
 
 function initiateDrag(cx,cy) {
   if (!dragState) return;
+  clearLongPress();
   isDragging = true; dragState.initiated = true;
   canvasWrap.classList.add('dragging-element');
 
@@ -561,13 +611,17 @@ function onPointerMove(e) {
 
   if (!dragState.initiated) {
     const dx=cx-dragState.startX, dy=cy-dragState.startY;
-    if (Math.sqrt(dx*dx+dy*dy)>7) initiateDrag(cx,cy);
+    if (Math.sqrt(dx*dx+dy*dy)>7) {
+      clearLongPress();
+      initiateDrag(cx,cy);
+    }
     return;
   }
   moveGhost(cx,cy);
 }
 
 function onPointerUp(e) {
+  clearLongPress();
   if (panState) endPan();
   if (!dragState) { controls.enabled=true; return; }
 
@@ -583,7 +637,15 @@ function onPointerUp(e) {
   document.getElementById('mixer-drop-zone')?.classList.remove('active-drop');
   hideDragHints();
 
-  if (!wasInitiated) { showAtom(el); return; }
+  if (!wasInitiated) {
+    // Tap — na mobu prikaži action sheet, na desktopu odmah atom
+    if (isMobile) {
+      showActionSheet(el);
+    } else {
+      showAtom(el);
+    }
+    return;
+  }
 
   const mixerEl = document.getElementById('mixer-section');
   if (!mixerEl) return;
@@ -594,6 +656,7 @@ function onPointerUp(e) {
 }
 
 function cancelDrag() {
+  clearLongPress();
   if (dragState) dragState=null;
   if (panState)  panState=null;
   isDragging=false; controls.enabled=true;
@@ -604,19 +667,304 @@ function cancelDrag() {
 }
 
 // =============================================================
-// DRAG HINTS — mogući spojevi
+// LONG-PRESS LUPA
+// =============================================================
+let longPressTimer = null;
+let longPressActive = false;
+
+function startLongPress(cx, cy, element) {
+  clearLongPress();
+  longPressTimer = setTimeout(() => {
+    longPressActive = true;
+    haptic('medium');
+    showMagnifier(cx, cy, element);
+  }, 500);
+}
+
+function clearLongPress() {
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  if (longPressActive) { hideMagnifier(); longPressActive = false; }
+}
+
+function showMagnifier(cx, cy, element) {
+  const mag = document.getElementById('magnifier');
+  if (!mag) return;
+  const cat = window.CATEGORIES[element.cat];
+  const hex = '#' + cat.color.toString(16).padStart(6, '0');
+
+  // Pozicioniraj iznad prsta, stegni na ekran
+  const mR = 75;
+  const mx = Math.max(mR, Math.min(window.innerWidth  - mR, cx));
+  const my = Math.max(mR + 10, Math.min(window.innerHeight - mR, cy - mR - 20));
+
+  mag.style.left = mx + 'px';
+  mag.style.top  = my + 'px';
+  mag.style.borderColor = hex;
+  mag.style.boxShadow   = `0 0 0 1px rgba(0,212,255,.3),0 0 30px ${hex}88,0 0 60px rgba(0,212,255,.2),inset 0 0 20px rgba(168,85,247,.08)`;
+  mag.innerHTML = `
+    <div class="mag-num">${element.n}</div>
+    <div class="mag-sym" style="color:${hex}">${element.s}</div>
+    <div class="mag-name">${element.name}</div>
+    <div class="mag-cat" style="color:${hex}">${cat.name}</div>
+    <div class="mag-mass">${element.m} u</div>
+  `;
+  mag.classList.add('visible');
+}
+
+function hideMagnifier() {
+  document.getElementById('magnifier')?.classList.remove('visible');
+}
+
+// =============================================================
+// MOBILNI ACTION SHEET (tap na element)
+// =============================================================
+let _actionSheetElement = null;
+
+function showActionSheet(element) {
+  haptic('light');
+  _actionSheetElement = element;
+
+  const cat = window.CATEGORIES[element.cat];
+  const hex = '#' + cat.color.toString(16).padStart(6, '0');
+  const shells = window.getBohrShells(element.n);
+
+  const hints = getDragHints(element.s);
+  let hintsHtml = '';
+  if (hints.length > 0) {
+    hintsHtml = '<div class="as-hint-title">Mogući spojevi</div>';
+    hints.slice(0, 5).forEach(h => {
+      const missingStr = Object.entries(h.missing)
+        .map(([s,n]) => n > 1 ? `${n}× ${s}` : s).join(' + ');
+      const badge = h.totalMissing === 0
+        ? `<span class="hint-badge match">✓ Spreman!</span>`
+        : `<span class="hint-badge missing">+ ${missingStr}</span>`;
+
+      const missingJson = JSON.stringify(h.missing).replace(/"/g, '&quot;');
+      const isReady  = h.totalMissing === 0;
+      const tappable = !isReady && h.totalMissing <= 3;
+      const escapedFormula = h.compound.formula.replace(/'/g, "\\'");
+      hintsHtml += `
+        <div class="as-hint-row tappable"
+             onclick="${isReady
+               ? `showCompoundByFormula('${escapedFormula}','${element.s}')`
+               : tappable ? `sheetAddMissing('${missingJson}')` : ''}">
+          <span class="as-hint-formula" style="color:${hex}">${h.compound.formula}</span>
+          <span class="as-hint-name">${h.compound.name}</span>
+          ${badge}
+        </div>`;
+    });
+  }
+
+  const content = document.getElementById('action-sheet-content');
+  if (content) {
+    content.innerHTML = `
+      <div class="as-element" style="border-color:${hex}88;background:${hex}0d">
+        <div class="as-sym" style="color:${hex}">${element.s}</div>
+        <div class="as-info">
+          <div class="as-name">${element.name}</div>
+          <div class="as-meta">${element.n} · ${cat.name} · ${element.m} u</div>
+          <div class="as-shells">${shells.join(' · ')}</div>
+        </div>
+      </div>
+      <div class="as-actions">
+        <button class="as-btn-primary"  onclick="sheetShowAtom()">⚛ Prikaži atom</button>
+        <button class="as-btn-secondary" onclick="sheetAddToChamber()">✦ Dodaj u komoru</button>
+      </div>
+      ${hintsHtml}
+    `;
+  }
+
+  // Proširi komoru ako je mini
+  if (chamberState === 'mini') setChamberState('standard');
+
+  document.getElementById('mobile-action-sheet')?.classList.add('active');
+}
+
+window.hideActionSheet = function() {
+  document.getElementById('mobile-action-sheet')?.classList.remove('active');
+};
+
+window.sheetShowAtom = function() {
+  const el = _actionSheetElement;
+  window.hideActionSheet();
+  if (!el) return;
+  if (chamberState === 'mini') setChamberState('standard');
+  showAtom(el);
+};
+
+window.sheetAddToChamber = function() {
+  const el = _actionSheetElement;
+  window.hideActionSheet();
+  if (!el) return;
+  if (chamberState === 'mini') setChamberState('standard');
+
+  // Fly animacija iz pozicije kartice na ekranu
+  const screenPos = getCardScreenPos(el);
+  const fromX = screenPos?.x ?? window.innerWidth / 2;
+  const fromY = screenPos?.y ?? window.innerHeight * 0.3;
+
+  haptic('medium');
+  animateDrop(el, fromX, fromY, () => addToMixerInternal(el.s));
+};
+
+window.sheetAddMissing = function(missingJson) {
+  window.hideActionSheet();
+  const pendingSym = _actionSheetElement?.s;
+  try {
+    const missing = JSON.parse(missingJson.replace(/&quot;/g, '"'));
+    if (pendingSym) addToMixerInternal(pendingSym);
+    Object.entries(missing).forEach(([sym, count]) => {
+      for (let i = 0; i < count; i++) addToMixerInternal(sym);
+    });
+    haptic('medium');
+  } catch(err) { /* ignore parse errors */ }
+};
+
+// =============================================================
+// PERIOD QUICK-JUMP
+// =============================================================
+window.jumpToPeriod = function(p) {
+  if (!currentObject) return;
+  haptic('light');
+
+  const periodCards = currentObject.children.filter(c => c.userData.isCard && c.userData.element?.per === p);
+  if (!periodCards.length) return;
+
+  const avgY = periodCards.reduce((s, c) => s + c.position.y, 0) / periodCards.length;
+  const avgX = 0; // centar X
+  const dist  = camera.position.distanceTo(controls.target);
+
+  animateCameraTo(
+    new THREE.Vector3(avgX, avgY, dist),
+    new THREE.Vector3(avgX, avgY, 0)
+  );
+
+  // Vizualni feedback na gumbima
+  document.querySelectorAll('.period-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i + 1 === p);
+  });
+  setTimeout(() => document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active')), 1400);
+
+  // Kratko istakni period, ostatak priguši
+  if (currentObject) {
+    currentObject.children.forEach(card => {
+      if (!card.userData.isCard) return;
+      const inPeriod = card.userData.element?.per === p;
+      if (card.material[4]) {
+        card.material[4].opacity = inPeriod ? 1 : 0.22;
+        card.material[4].transparent = !inPeriod;
+      }
+    });
+    setTimeout(() => {
+      currentObject.children.forEach(card => {
+        if (!card.userData.isCard || !card.material[4]) return;
+        card.material[4].opacity = 1;
+        card.material[4].transparent = false;
+      });
+    }, 1200);
+  }
+};
+
+// =============================================================
+// CATEGORY FILTER PILLS
+// =============================================================
+function buildCategoryPills() {
+  const el = document.getElementById('category-pills');
+  if (!el) return;
+  el.innerHTML = Object.entries(window.CATEGORIES).map(([k, v]) => {
+    const hex = '#' + v.color.toString(16).padStart(6, '0');
+    const label = v.name.length > 12 ? v.name.split(' ')[0] : v.name;
+    return `<button class="cat-pill" data-cat="${k}" onclick="toggleCategory('${k}')"
+      style="--cat-color:${hex}">
+      <span class="cat-dot" style="background:${hex}"></span>${label}
+    </button>`;
+  }).join('');
+}
+
+window.toggleCategory = function(cat) {
+  haptic('light');
+  activeCategory = activeCategory === cat ? null : cat;
+
+  document.querySelectorAll('.cat-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.cat === activeCategory);
+  });
+
+  applyCardFilter();
+};
+
+function applyCardFilter() {
+  if (!currentObject) return;
+  currentObject.children.forEach(card => {
+    if (!card.userData.isCard) return;
+    const match = !activeCategory || card.userData.element.cat === activeCategory;
+    if (card.material[4]) {
+      card.material[4].opacity = match ? 1 : 0.1;
+      card.material[4].transparent = !match;
+    }
+    card.scale.setScalar(match ? 1 : 0.9);
+  });
+}
+
+// =============================================================
+// CHAMBER STANJA (mini / standard / full)
+// =============================================================
+window.setChamberState = function(state) {
+  chamberState = state;
+  const panel = document.querySelector('.right-panel');
+  if (!panel) return;
+  panel.className = panel.className.replace(/\bchamber-\S+/g, '').trim();
+  panel.classList.add('chamber-' + state);
+  setTimeout(onResize, 340);
+  haptic('light');
+};
+
+// Swipe ručka
+function setupChamberSwipe() {
+  const handle = document.getElementById('chamber-handle');
+  if (!handle) return;
+  let startY = 0, startH = 0;
+
+  handle.addEventListener('touchstart', e => {
+    if (!isMobile) return;
+    startY = e.touches[0].clientY;
+    const panel = document.querySelector('.right-panel');
+    startH = panel ? panel.offsetHeight : 200;
+    e.preventDefault();
+  }, { passive: false });
+
+  handle.addEventListener('touchmove', e => {
+    if (!isMobile) return;
+    const dy = startY - e.touches[0].clientY;
+    const newH = Math.max(60, Math.min(window.innerHeight * .83, startH + dy));
+    const panel = document.querySelector('.right-panel');
+    if (panel) panel.style.height = newH + 'px';
+    e.preventDefault();
+  }, { passive: false });
+
+  handle.addEventListener('touchend', () => {
+    if (!isMobile) return;
+    const panel = document.querySelector('.right-panel');
+    const h = panel ? panel.offsetHeight : 200;
+    const vh = window.innerHeight;
+    if (panel) panel.style.height = ''; // ukloni inline, klasa preuzima
+    if (h < vh * .18)      window.setChamberState('mini');
+    else if (h < vh * .55) window.setChamberState('standard');
+    else                    window.setChamberState('full');
+  });
+}
+
+// =============================================================
+// DRAG HINTS — mogući spojevi (s tappable redovima)
 // =============================================================
 function getDragHints(symbol) {
-  // Gradimo hipotetički mixer: trenutni + novi element
   const hypo = {};
   mixer.forEach(s=>{ hypo[s]=(hypo[s]||0)+1; });
   hypo[symbol] = (hypo[symbol]||0)+1;
 
   const results = [];
   window.COMPOUNDS.forEach(c => {
-    if (!(symbol in c.ingredients)) return; // mora sadržavati ovaj element
+    if (!(symbol in c.ingredients)) return;
 
-    // Provjeri višak — imamo nešto što ovaj spoj ne treba?
     const hasExcess = Object.keys(hypo).some(s => (c.ingredients[s]||0) < hypo[s]);
 
     const missing = {};
@@ -626,7 +974,6 @@ function getDragHints(symbol) {
       if (have < need) { missing[s]=need-have; totalMissing+=need-have; }
     });
 
-    // Prikaži samo ako nema viška ILI ako je potpuno točno
     if (!hasExcess && totalMissing <= 3) {
       results.push({ compound:c, missing, totalMissing });
     }
@@ -647,11 +994,19 @@ function showDragHints(symbol, cx, cy) {
     const missingStr = Object.entries(h.missing)
       .map(([s,n]) => n>1 ? `${n}× ${s}` : s).join(', ');
     const badge = h.totalMissing === 0
-      ? `<span class="hint-badge match">Spreman!</span>`
+      ? `<span class="hint-badge match">✓ Spreman!</span>`
       : missingStr
         ? `<span class="hint-badge missing">+ ${missingStr}</span>`
         : '';
-    html += `<div class="hint-row">
+
+    const isReady    = h.totalMissing === 0;
+    const tappable   = !isReady && h.totalMissing <= 3;
+    const missingJson = JSON.stringify(h.missing).replace(/"/g, '&quot;');
+    const escapedFormula = h.compound.formula.replace(/'/g, "\\'");
+    html += `<div class="hint-row hint-tappable"
+      onclick="${isReady
+        ? `showCompoundByFormula('${escapedFormula}','${symbol}')`
+        : tappable ? `addMissingFromHint('${missingJson}','${symbol}')` : ''}">
       <span class="hint-formula">${h.compound.formula}</span>
       <span class="hint-name">${h.compound.name}</span>
       ${badge}
@@ -659,14 +1014,13 @@ function showDragHints(symbol, cx, cy) {
   });
   box.innerHTML = html;
 
-  // Pozicioniranje iznad komore
   const mixerRect = document.getElementById('mixer-section')?.getBoundingClientRect();
   if (mixerRect) {
-    box.style.display = 'block'; // privremeno za mjerenje visine
+    box.style.display = 'block';
     const bh = box.offsetHeight;
     box.style.display = '';
-    box.style.left = mixerRect.left + 'px';
-    box.style.top  = (mixerRect.top - bh - 8) + 'px';
+    box.style.left  = mixerRect.left + 'px';
+    box.style.top   = (mixerRect.top - bh - 8) + 'px';
     box.style.width = mixerRect.width + 'px';
   }
   box.classList.add('visible');
@@ -675,6 +1029,53 @@ function showDragHints(symbol, cx, cy) {
 function hideDragHints() {
   document.getElementById('drag-hints')?.classList.remove('visible');
 }
+
+// Klik na gotov spoj u listi → prikaži ga u komori
+// pendingSymbol = element koji je tapnut/vučen ali još NIJE u mixeru
+window.showCompoundByFormula = function(formula, pendingSymbol) {
+  const c = window.COMPOUNDS.find(x => x.formula === formula);
+  if (!c) return;
+  hideDragHints();
+  window.hideActionSheet?.();
+
+  // Otkaži aktivni drag da ne doda element još jednom
+  if (dragState) {
+    dragState = null; isDragging = false; controls.enabled = true;
+    canvasWrap?.classList.remove('dragging-element');
+    document.getElementById('drag-ghost')?.classList.remove('active');
+    document.getElementById('mixer-drop-zone')?.classList.remove('active-drop');
+  }
+
+  // Dodaj tappani/vučeni element u mixer (on je "Spreman!" samo s njim)
+  if (pendingSymbol) addToMixerInternal(pendingSymbol);
+
+  if (isMobile && chamberState === 'mini') setChamberState('standard');
+  triggerCompoundEffect(() => {
+    showCompound(c);
+    showMessage('✨ ' + c.formula + ' – ' + c.name, 'magic');
+  });
+};
+
+// Tappable hint u drag-hint boxu — dodaj nedostajuće atome
+window.addMissingFromHint = function(missingJson, pendingSymbol) {
+  try {
+    const missing = JSON.parse(missingJson.replace(/&quot;/g, '"'));
+    if (pendingSymbol) {
+      addToMixerInternal(pendingSymbol);
+      if (dragState) {
+        dragState = null; isDragging = false; controls.enabled = true;
+        document.getElementById('drag-ghost')?.classList.remove('active');
+        canvasWrap?.classList.remove('dragging-element');
+        document.getElementById('mixer-drop-zone')?.classList.remove('active-drop');
+      }
+    }
+    Object.entries(missing).forEach(([sym, count]) => {
+      for (let i = 0; i < count; i++) addToMixerInternal(sym);
+    });
+    haptic('medium');
+    hideDragHints();
+  } catch(err) { /* ignore */ }
+};
 
 // =============================================================
 // DROP ANIMACIJA (luk + pad u komoru)
@@ -746,6 +1147,7 @@ function animateDrop(element, fromX, fromY, onComplete) {
 function addToMixerInternal(symbol) {
   if (mixer.length>=12) { showMessage('Komora je puna! Max 12 atoma.','warn'); return; }
   mixer.push(symbol); renderMixer();
+  updateElementGlowFilter();
   setTimeout(()=>autoTryFormCompound(),350);
 }
 
@@ -753,13 +1155,58 @@ function addToMixer(symbol) {
   if (mixer.length>=12) { showMessage('Komora je puna!','warn'); return; }
   mixer.push(symbol); renderMixer();
   triggerMistBurst(false);
+  updateElementGlowFilter();
   setTimeout(()=>autoTryFormCompound(),300);
 }
 
-function removeFromMixer(index) { mixer.splice(index,1); renderMixer(); }
+function removeFromMixer(index) {
+  mixer.splice(index,1); renderMixer();
+  updateElementGlowFilter();
+}
 
 function clearMixer() {
   mixer=[]; renderMixer(); hideResult();
+  updateElementGlowFilter();
+}
+
+// =============================================================
+// ELEMENT GLOW FILTER — zatamni elemente koji ne mogu u spoj
+// =============================================================
+function canElementContribute(symbol, mixerCounts) {
+  const hypo = { ...mixerCounts };
+  hypo[symbol] = (hypo[symbol] || 0) + 1;
+
+  return window.COMPOUNDS.some(c => {
+    if (!(symbol in c.ingredients)) return false;
+    // nijdan element u hypo ne smije premašiti ono što spoj treba
+    return !Object.keys(hypo).some(s => (c.ingredients[s] || 0) < hypo[s]);
+  });
+}
+
+function updateElementGlowFilter() {
+  if (!currentObject) return;
+
+  if (mixer.length === 0) {
+    // Mixer prazan → vrati sve na normalno
+    currentObject.children.forEach(card => {
+      if (!card.userData.isCard) return;
+      if (card.material[4]) { card.material[4].opacity = 1; card.material[4].transparent = false; }
+      card.scale.setScalar(1);
+    });
+    return;
+  }
+
+  const mixerCounts = {};
+  mixer.forEach(s => { mixerCounts[s] = (mixerCounts[s] || 0) + 1; });
+
+  currentObject.children.forEach(card => {
+    if (!card.userData.isCard) return;
+    const sym  = card.userData.element.s;
+    const can  = canElementContribute(sym, mixerCounts);
+    const mat  = card.material[4];
+    if (mat) { mat.opacity = can ? 1 : 0.14; mat.transparent = !can; }
+    card.scale.setScalar(can ? 1 : 0.88);
+  });
 }
 
 function autoTryFormCompound() {
@@ -774,6 +1221,7 @@ function autoTryFormCompound() {
   if (match) triggerCompoundEffect(()=>{
     showCompound(match);
     showMessage('✨ Spoj nastao: '+match.formula+' – '+match.name,'magic');
+    if (isMobile) setChamberState('standard');
   });
 }
 
@@ -804,6 +1252,7 @@ function triggerCompoundEffect(callback) {
     setTimeout(()=>{sec.style.boxShadow='';},700);
   }
   triggerMistBurst(true);
+  haptic('heavy');
   setTimeout(callback,480);
 }
 
@@ -970,7 +1419,7 @@ function updateInfoPanelCompound(c) {
 }
 
 function showHoverTooltip(el) {
-  const t=document.getElementById('hover-tooltip'); if(!t) return;
+  const t=document.getElementById('hover-tooltip'); if(!t||isMobile) return;
   t.style.display='block';
   t.innerHTML=`<strong>${el.s}</strong> · ${el.name} <small>(${el.n})</small>`;
 }
@@ -987,7 +1436,11 @@ function hideResult() { document.getElementById('message')?.classList.remove('vi
 // =============================================================
 // SETUP
 // =============================================================
-function setupUI() { updateInfoPanelDefault(); renderMixer(); }
+function setupUI() {
+  updateInfoPanelDefault();
+  renderMixer();
+  buildCategoryPills();
+}
 
 function setupListeners() {
   canvasEl.addEventListener('pointerdown', onPointerDown, {passive:false});
@@ -1014,6 +1467,7 @@ function setupListeners() {
 }
 
 function onResize() {
+  checkMobile();
   const w=canvasEl.clientWidth, h=canvasEl.clientHeight;
   camera.aspect=w/h; camera.updateProjectionMatrix();
   renderer.setSize(w,h,false);
