@@ -83,10 +83,43 @@ html, body {
 .btn-action:hover { background:rgba(0,212,255,.15); border-color:var(--border-strong); }
 .btn-action.active { background:rgba(0,212,255,.2); border-color:var(--accent); box-shadow:0 0 12px rgba(0,212,255,.3); }
 
+/* ── CATEGORY PILLS (mobilni filter) ─────────────────────── */
+.category-pills {
+  display: none; /* skriveno na desktopu */
+  gap: 6px;
+  padding: 6px 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: linear-gradient(180deg,rgba(10,13,31,.9),rgba(7,9,22,.8));
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.category-pills::-webkit-scrollbar { display: none; }
+
+.cat-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  color: var(--text-muted); font-size: 11px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: all .18s;
+}
+.cat-pill.active {
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 20%, transparent);
+  border-color: var(--cat-color, var(--accent));
+  color: var(--text);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cat-color, var(--accent)) 40%, transparent);
+}
+.cat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
 /* ── MAIN (periodni + desni panel) ───────────────────────── */
 .main {
   display: grid;
-  grid-template-columns: 1fr 302px;   /* 302 = 282 front + 20 right face */
+  grid-template-columns: 1fr 302px;
   overflow: hidden; min-height: 0;
 }
 
@@ -132,6 +165,37 @@ html, body {
   position:absolute; bottom:12px; left:12px;
   display:flex; flex-direction:column; gap:2px;
   font-size:11px; color:var(--text-muted); pointer-events:none; opacity:.6;
+}
+
+/* ── PERIOD STRIP (mobilni quick-jump) ───────────────────── */
+.period-strip {
+  display: none; /* skriveno na desktopu */
+  position: absolute; bottom: 0; left: 0; right: 0;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 5px 10px;
+  background: linear-gradient(0deg, rgba(5,6,15,.95) 0%, rgba(5,6,15,.7) 100%);
+  border-top: 1px solid rgba(0,212,255,.12);
+  z-index: 8;
+}
+.period-label {
+  font-size: 9px; color: var(--text-muted); letter-spacing: .08em;
+  flex-shrink: 0; margin-right: 2px;
+}
+.period-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  border: 1px solid rgba(0,212,255,.2);
+  background: rgba(0,212,255,.06);
+  color: var(--text-muted); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .18s; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.period-btn:active,
+.period-btn.active {
+  background: rgba(0,212,255,.22);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(0,212,255,.4);
+  transform: scale(1.15);
 }
 
 /* ── DESNI PANEL ──────────────────────────────────────────── */
@@ -233,11 +297,10 @@ html, body {
 .cube-wrapper {
   position: relative;
   flex-shrink: 0;
-  padding-top: 26px;    /* top face height */
-  padding-right: 20px;  /* right face width */
+  padding-top: 26px;
+  padding-right: 20px;
 }
 
-/* Gornja ploha kocke */
 .cube-face-top {
   position: absolute;
   top: 0; left: 0; right: 20px; height: 26px;
@@ -268,7 +331,6 @@ html, body {
 }
 @keyframes label-glow { 0%,100%{opacity:.6} 50%{opacity:1} }
 
-/* Corner rivets */
 .cube-face-top::before,
 .cube-face-top::after {
   content:'◆'; position:absolute;
@@ -278,7 +340,6 @@ html, body {
 .cube-face-top::before { left:10px; }
 .cube-face-top::after  { right:28px; }
 
-/* Desna ploha kocke */
 .cube-face-right {
   position:absolute; top:0; right:0;
   width:20px; height:100%;
@@ -288,10 +349,40 @@ html, body {
   clip-path: polygon(0% 26px, 100% 0%, 100% 100%, 0% 100%);
 }
 
+/* ── CHAMBER HANDLE (mobilni) ─────────────────────────────── */
+.chamber-handle {
+  display: none; /* skriveno na desktopu */
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 28px; z-index: 10;
+  align-items: center; justify-content: center;
+  background: linear-gradient(180deg,rgba(168,85,247,.12),transparent);
+  cursor: ns-resize; gap: 12px;
+  touch-action: none;
+}
+.handle-pill {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: rgba(168,85,247,.5);
+}
+.handle-states {
+  display: flex; gap: 6px;
+}
+.state-btn {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 1px solid rgba(168,85,247,.35);
+  background: rgba(168,85,247,.08);
+  color: rgba(168,85,247,.7); font-size: 11px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.state-btn:active {
+  background: rgba(168,85,247,.25);
+  border-color: var(--magic);
+  transform: scale(1.15);
+}
+
 /* ── MIXER (prednja ploha kocke) ──────────────────────────── */
 .mixer {
   position:relative; overflow:hidden;
-  /* Kvadrat: širina = 302-20=282px, visina=282px → ~kocka */
   height: 282px;
   background:
     radial-gradient(ellipse at 50% 105%, rgba(168,85,247,.16) 0%, transparent 65%),
@@ -304,8 +395,6 @@ html, body {
     inset -1px 0  8px rgba(168,85,247,.03),
     inset  0  -1px 8px rgba(168,85,247,.05);
 }
-
-/* Scan line */
 .mixer::after {
   content:''; position:absolute; left:0; right:0; height:1px;
   background:linear-gradient(90deg,transparent,rgba(168,85,247,.65),rgba(0,212,255,.8),rgba(168,85,247,.65),transparent);
@@ -319,13 +408,32 @@ html, body {
   100%{top:100%; opacity:0}
 }
 
-/* ── CHAMBER CANVAS (Three.js prikaz atoma/spoja) ─────────── */
+/* ── CHAMBER LABEL (naziv atoma / spoja) ─────────────────── */
+.chamber-label {
+  position: absolute; top: 32px; left: 0; right: 0;
+  text-align: center; z-index: 5; pointer-events: none;
+  padding: 0 8px;
+  opacity: 0; transition: opacity .4s ease;
+}
+.chamber-label.visible { opacity: 1; }
+.chamber-label-formula {
+  display: block;
+  font-size: 15px; font-weight: 800; letter-spacing: .04em;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(168,85,247,.9), 0 0 30px rgba(0,212,255,.5);
+}
+.chamber-label-name {
+  display: block;
+  font-size: 10px; font-weight: 500; letter-spacing: .1em;
+  color: rgba(168,85,247,.75); text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* ── CHAMBER CANVAS ───────────────────────────────────────── */
 .chamber-canvas {
   position:absolute; inset:0; width:100%; height:100%;
   pointer-events:none; z-index:4;
-  /* alpha:true u Three.js — magla i tesla vidljivi u pozadini */
 }
-
 .mist-canvas {
   position:absolute; inset:0; width:100%; height:100%;
   pointer-events:none; z-index:2;
@@ -400,7 +508,7 @@ html, body {
   border-radius:10px; padding:10px 13px;
   font-size:11px; min-width:200px; max-width:280px;
   box-shadow:0 0 24px rgba(168,85,247,.3), 0 4px 20px rgba(0,0,0,.6);
-  pointer-events:none;
+  pointer-events: auto;
 }
 .drag-hints.visible { display:block; }
 
@@ -411,9 +519,17 @@ html, body {
 }
 .hint-row {
   display:flex; align-items:baseline; gap:6px;
-  padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04);
+  padding:4px 0; border-bottom:1px solid rgba(255,255,255,.04);
+  border-radius: 5px; transition: background .15s;
 }
 .hint-row:last-child { border-bottom:none; }
+.hint-row.hint-tappable {
+  cursor: pointer; padding: 5px 6px; margin: 0 -6px;
+}
+.hint-row.hint-tappable:hover,
+.hint-row.hint-tappable:active {
+  background: rgba(168,85,247,.12);
+}
 .hint-formula {
   font-weight:700; font-size:13px; color:#fff; flex-shrink:0; min-width:44px;
 }
@@ -462,6 +578,124 @@ html, body {
   to  {transform:translate(-50%,-50%) scale(4);opacity:0}
 }
 
+/* ── MOBILE ACTION SHEET ──────────────────────────────────── */
+.mobile-action-sheet {
+  display: none;
+  position: fixed; inset: 0; z-index: 10000;
+}
+.mobile-action-sheet.active { display: block; }
+
+.action-sheet-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(3px);
+}
+.action-sheet-panel {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, #13162e 0%, #0a0d1f 100%);
+  border-top: 1px solid rgba(168,85,247,.5);
+  border-radius: 20px 20px 0 0;
+  padding: 8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.34, 1.15, 0.64, 1);
+  max-height: 85vh; overflow-y: auto;
+}
+.mobile-action-sheet.active .action-sheet-panel {
+  transform: translateY(0);
+}
+.action-sheet-handle-bar {
+  width: 40px; height: 4px;
+  background: rgba(168,85,247,.4);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.action-sheet-content {}
+
+/* Element header u action sheetu */
+.as-element {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 14px;
+  border: 1px solid; margin-bottom: 16px;
+  background: rgba(255,255,255,.04);
+}
+.as-sym {
+  font-size: 42px; font-weight: 800; line-height: 1;
+  text-shadow: 0 0 20px currentColor; flex-shrink: 0;
+}
+.as-info { flex: 1; min-width: 0; }
+.as-name { font-size: 18px; font-weight: 700; }
+.as-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.as-shells { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-family: monospace; }
+
+/* Action gumbi */
+.as-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 16px;
+}
+.as-btn-primary {
+  padding: 13px 8px;
+  background: linear-gradient(135deg, rgba(0,212,255,.25), rgba(0,153,204,.15));
+  border: 1px solid rgba(0,212,255,.45);
+  border-radius: 12px; color: var(--accent);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .18s; text-align: center;
+}
+.as-btn-primary:active { background: rgba(0,212,255,.35); transform: scale(.97); }
+
+.as-btn-secondary {
+  padding: 13px 8px;
+  background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(120,50,200,.15));
+  border: 1px solid rgba(168,85,247,.45);
+  border-radius: 12px; color: #c084fc;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .18s; text-align: center;
+}
+.as-btn-secondary:active { background: rgba(168,85,247,.35); transform: scale(.97); }
+
+/* Hint redovi u action sheetu */
+.as-hint-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+.as-hint-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 6px; transition: background .15s;
+}
+.as-hint-row.tappable { cursor: pointer; }
+.as-hint-row.tappable:active { background: rgba(168,85,247,.14); transform: scale(.99); }
+.as-hint-formula { font-weight: 700; font-size: 14px; flex-shrink: 0; min-width: 50px; }
+.as-hint-name    { flex: 1; font-size: 12px; color: var(--text-muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── LUPA (long-press magnifier) ─────────────────────────── */
+.magnifier {
+  display: none;
+  position: fixed;
+  width: 150px; height: 150px; border-radius: 50%;
+  border: 2px solid rgba(168,85,247,.8);
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,.3),
+    0 0 30px rgba(168,85,247,.5),
+    0 0 60px rgba(0,212,255,.2),
+    inset 0 0 20px rgba(168,85,247,.08);
+  pointer-events: none; z-index: 9900;
+  background: radial-gradient(ellipse at 35% 30%,rgba(168,85,247,.18),rgba(5,6,15,.98));
+  flex-direction: column; align-items: center; justify-content: center;
+  transform: translate(-50%, -50%);
+  animation: mag-appear .18s cubic-bezier(0.34,1.4,0.64,1);
+}
+.magnifier.visible { display: flex; }
+@keyframes mag-appear {
+  from { transform: translate(-50%,-50%) scale(.3); opacity: 0; }
+  to   { transform: translate(-50%,-50%) scale(1);  opacity: 1; }
+}
+.mag-num  { font-size: 11px; color: var(--text-muted); }
+.mag-sym  { font-size: 44px; font-weight: 800; line-height: 1; text-shadow: 0 0 16px currentColor; }
+.mag-name { font-size: 11px; color: var(--text); margin-top: 3px; }
+.mag-cat  { font-size: 9px; margin-top: 2px; }
+.mag-mass { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
 /* ── FOOTER ───────────────────────────────────────────────── */
 .footer {
   padding:4px 16px; background:var(--bg-0);
@@ -469,40 +703,103 @@ html, body {
   font-size:10px; color:var(--text-muted); text-align:center;
 }
 
-/* ── MOBILE ───────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   MOBILNI DIZAJN (≤ 900px)
+   ═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
+
+  /* App grid dobiva redak za category pills */
+  .app {
+    grid-template-rows: auto auto 1fr;
+    /* topbar | pills | main — footer skriven */
+  }
+  .footer { display: none; }
+
+  /* Category pills vidljive */
+  .category-pills { display: flex; }
+
+  /* Main: flex kolona umjesto grid stupca */
   .main {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    overflow: hidden;
   }
+
+  /* Canvas zauzima sav preostali prostor */
+  .canvas-wrap {
+    flex: 1; min-height: 0;
+  }
+
+  /* Period strip vidljiv */
+  .period-strip { display: flex; }
+
+  /* Hint hint sakriven (touchscreen) */
+  .canvas-hint { display: none; }
+
+  /* Hover tooltip — manji na mobu */
+  .hover-tooltip { top: 8px; left: 8px; font-size: 12px; padding: 5px 10px; }
+
+  /* ── DESNI PANEL → postaje komora na dnu ── */
   .right-panel {
-    flex-direction: row;
+    flex-shrink: 0;
+    flex-direction: column;
     border-left: none;
-    border-top: 1px solid var(--border);
-    max-height: 46vw;
+    border-top: 2px solid rgba(168,85,247,.5);
+    height: 46vw;
+    min-height: 80px;
+    transition: height 0.32s cubic-bezier(0.34, 1.15, 0.64, 1);
+    overflow: hidden;
   }
-  .info-panel {
-    flex:1; min-width:0; padding:10px 12px;
-    border-right:1px solid var(--border);
+
+  /* Chamber stanja */
+  .right-panel.chamber-mini     { height: 80px; }
+  .right-panel.chamber-standard { height: 46vw; }
+  .right-panel.chamber-full     { height: 78vh; }
+
+  /* Info panel skriven — zamijenjen action sheetom */
+  .info-panel { display: none; }
+
+  /* Cube wrapper pun visinom panela, bez 3D efekta stranica */
+  .cube-wrapper {
+    flex: 1; min-height: 0;
+    padding-top: 28px;   /* visina handlea */
+    padding-right: 0;
   }
-  .cube-wrapper { padding-top:20px; padding-right:16px; }
-  .cube-face-top  { height:20px; right:16px; }
-  .cube-face-right{ width:16px; clip-path:polygon(0% 20px,100% 0%,100% 100%,0% 100%); }
+  .cube-face-top {
+    right: 0; height: 28px;
+    clip-path: none;
+    border-radius: 0;
+  }
+  .cube-face-right { display: none; }
+
+  /* Mixer pun visinom */
   .mixer {
-    /* Na mobitelu: širina ≈ 46vw − 16px, visina iste veličine */
-    height: calc(46vw - 20px);
-    min-height: 140px; max-height: 220px;
+    height: 100%;
+    min-height: 50px;
   }
-  .topbar { padding:8px 12px; flex-wrap:wrap; }
-  #search { flex:1; min-width:100px; width:auto; }
-  .btn-label { display:none; }
-  .canvas-hint { font-size:10px; opacity:.5; }
+
+  /* Chamber handle vidljiv */
+  .chamber-handle { display: flex; }
+
+  /* Topbar kompaktniji */
+  .topbar { padding: 8px 12px; }
+  #search  { flex: 1; min-width: 80px; width: auto; }
+  .btn-label { display: none; }
+
+  /* Message bar iznad komore */
+  .message-bar { bottom: auto; top: 16px; }
 }
-@media (max-width: 500px) {
-  .brand-text { font-size:13px; }
-  .brand-icon  { font-size:18px; }
-  .right-panel { max-height:52vw; }
-  .mixer { min-height:120px; }
-  .canvas-hint { display:none; }
-  #search { max-width:110px; }
+
+/* Manji telefoni */
+@media (max-width: 480px) {
+  .brand-text { font-size: 13px; }
+  .brand-icon  { font-size: 18px; }
+  #search      { max-width: 110px; }
+
+  .right-panel.chamber-standard { height: 52vw; }
+
+  .as-sym  { font-size: 34px; }
+  .as-name { font-size: 15px; }
+  .as-actions { grid-template-columns: 1fr; }
 }
