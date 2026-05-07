@@ -803,5 +803,831 @@ window.COMPOUNDS = [
     bondType:"Ionska + kovalentna", geometry:"Trigonska planarna",
     description:"Pakleni kamen, koristio se u medicini.",
     uses:"Fotografija, medicina, analitika"
+  },
+
+  // ── Halogeni spojevi ─────────────────────────────────────────────────────
+  {
+    formula:"NaBr", name:"Natrijev bromid", ingredients:{Na:1, Br:1},
+    atoms:[{el:"Na", pos:[-1.29,0,0]},{el:"Br", pos:[1.29,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (FCC)",
+    description:"Bijela sol slična kuhinjskoj soli.",
+    uses:"Sedativi, fotografija, bušotine"
+  },
+  {
+    formula:"NaI", name:"Natrijev jodid", ingredients:{Na:1, I:1},
+    atoms:[{el:"Na", pos:[-1.47,0,0]},{el:"I", pos:[1.47,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (FCC)",
+    description:"Sol koja se dodaje u jodirani namjenski.",
+    uses:"Jodirani sol, štitnjača, medicina"
+  },
+  {
+    formula:"KBr", name:"Kalijev bromid", ingredients:{K:1, Br:1},
+    atoms:[{el:"K", pos:[-1.54,0,0]},{el:"Br", pos:[1.54,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (FCC)",
+    description:"Bijela sol, nekad korišten kao sedativ.",
+    uses:"Antiepileptik u veterini, fotografija"
+  },
+  {
+    formula:"KI", name:"Kalijev jodid", ingredients:{K:1, I:1},
+    atoms:[{el:"K", pos:[-1.67,0,0]},{el:"I", pos:[1.67,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (FCC)",
+    description:"Sol joda, važna u medicini i prehrani.",
+    uses:"Zaštita od radioaktivnog joda, hrana"
+  },
+  {
+    formula:"KF", name:"Kalijev fluorid", ingredients:{K:1, F:1},
+    atoms:[{el:"K", pos:[-1.27,0,0]},{el:"F", pos:[1.27,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (FCC)",
+    description:"Bijela kristalna sol, jako korozivna.",
+    uses:"Zavarivanje, kemijska sinteza"
+  },
+  {
+    formula:"LiCl", name:"Litijev klorid", ingredients:{Li:1, Cl:1},
+    atoms:[{el:"Li", pos:[-1.02,0,0]},{el:"Cl", pos:[1.02,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal",
+    description:"Bijela sol, koristi se u litijevim baterijama.",
+    uses:"Baterije, kemijska sinteza, klima"
+  },
+  {
+    formula:"CaF₂", name:"Kalcijev fluorid (fluorit)", ingredients:{Ca:1, F:2},
+    atoms:[
+      {el:"F", pos:[-2.0,0,0]},
+      {el:"Ca", pos:[0,0,0]},
+      {el:"F", pos:[2.0,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Kubna (fluorit)",
+    description:"Mineral fluorit, osnova za fluoridaciju.",
+    uses:"Optika, HF sinteza, metalurgija"
+  },
+  {
+    formula:"BaCl₂", name:"Barijev klorid", ingredients:{Ba:1, Cl:2},
+    atoms:[
+      {el:"Cl", pos:[-2.68,0,0]},
+      {el:"Ba", pos:[0,0,0]},
+      {el:"Cl", pos:[2.68,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Linearna",
+    description:"Otrovana sol barija, bijeli kristali.",
+    uses:"Pirotehnika (zelena boja), analitika"
+  },
+  {
+    formula:"FeCl₂", name:"Željezo(II) klorid", ingredients:{Fe:1, Cl:2},
+    atoms:[
+      {el:"Cl", pos:[-2.32,0,0]},
+      {el:"Fe", pos:[0,0,0]},
+      {el:"Cl", pos:[2.32,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Oktaedarska (kristal)",
+    description:"Zelena sol željeza, reducens.",
+    uses:"Obrada otpadnih voda, sinteza"
+  },
+  {
+    formula:"FeCl₃", name:"Željezo(III) klorid", ingredients:{Fe:1, Cl:3},
+    atoms:[
+      {el:"Fe", pos:[0,0,0]},
+      {el:"Cl", pos:[2.06,0,0]},
+      {el:"Cl", pos:[-1.03,1.78,0]},
+      {el:"Cl", pos:[-1.03,-1.78,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Trigonska planarna",
+    description:"Žuta/smeđa sol, jaki oksidans.",
+    uses:"Jetkanje bakra, obrada vode, boje"
+  },
+  {
+    formula:"ZnCl₂", name:"Cinkov klorid", ingredients:{Zn:1, Cl:2},
+    atoms:[
+      {el:"Cl", pos:[-2.06,0,0]},
+      {el:"Zn", pos:[0,0,0]},
+      {el:"Cl", pos:[2.06,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Linearna",
+    description:"Bijela sol, higroskopna.",
+    uses:"Lemljenje, impregnacija drva"
+  },
+  {
+    formula:"NH₄Cl", name:"Amonijev klorid (sal amonijak)", ingredients:{N:1, H:4, Cl:1},
+    atoms:[
+      {el:"N", pos:[0,0,0]},
+      {el:"H", pos:[0.63,0.63,0.63]},
+      {el:"H", pos:[-0.63,-0.63,0.63]},
+      {el:"H", pos:[-0.63,0.63,-0.63]},
+      {el:"H", pos:[0.63,-0.63,-0.63]},
+      {el:"Cl", pos:[3.0,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1}],
+    bondType:"Ionska (NH₄⁺ Cl⁻)", geometry:"Tetraedar (NH₄⁺)",
+    description:"Sol amonijaka, bijeli prašak oštrog mirisa.",
+    uses:"Gnojivo, lemljenje, baterije"
+  },
+  {
+    formula:"PCl₃", name:"Fosforov triklorid", ingredients:{P:1, Cl:3},
+    atoms:[
+      {el:"P", pos:[0,0.4,0]},
+      {el:"Cl", pos:[2.0,-0.3,0]},
+      {el:"Cl", pos:[-1.0,-0.3,1.73]},
+      {el:"Cl", pos:[-1.0,-0.3,-1.73]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Trigonska piramida",
+    description:"Bezbojna tekućina, reagira s vodom.",
+    uses:"Sinteza organofosfornih spojeva"
+  },
+  {
+    formula:"PCl₅", name:"Fosforov pentaklorid", ingredients:{P:1, Cl:5},
+    atoms:[
+      {el:"P", pos:[0,0,0]},
+      {el:"Cl", pos:[2.02,0,0]},
+      {el:"Cl", pos:[-2.02,0,0]},
+      {el:"Cl", pos:[0,2.1,0]},
+      {el:"Cl", pos:[1.01,0,1.75]},
+      {el:"Cl", pos:[-1.01,0,-1.75]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1},{from:0,to:5,type:1}],
+    bondType:"Kovalentna", geometry:"Trigonska bipiramida",
+    description:"Bijela kristalna tvar, hidrolizira u HCl.",
+    uses:"Sinteza farmaceutika i pesticida"
+  },
+
+  // ── Oksidi ───────────────────────────────────────────────────────────────
+  {
+    formula:"TiO₂", name:"Titanijev dioksid (rutil)", ingredients:{Ti:1, O:2},
+    atoms:[
+      {el:"O", pos:[-1.0,0,0]},
+      {el:"Ti", pos:[0,0,0]},
+      {el:"O", pos:[1.0,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Rutilna kristalna rešetka",
+    description:"Bijeli pigment, fotokatalizator.",
+    uses:"Bijela boja, sunčane ćelije, kozmetika"
+  },
+  {
+    formula:"MnO₂", name:"Manganove(IV) oksid", ingredients:{Mn:1, O:2},
+    atoms:[
+      {el:"O", pos:[-1.0,0,0]},
+      {el:"Mn", pos:[0,0,0]},
+      {el:"O", pos:[1.0,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:2},{from:1,to:2,type:2}],
+    bondType:"Ionska", geometry:"Rutilna kristalna rešetka",
+    description:"Crni mineralni prah, oksidans.",
+    uses:"Baterije, oksidacija u sintezi"
+  },
+  {
+    formula:"Cr₂O₃", name:"Kromov(III) oksid (krokit)", ingredients:{Cr:2, O:3},
+    atoms:[
+      {el:"Cr", pos:[-1.5,0,0]},
+      {el:"Cr", pos:[1.5,0,0]},
+      {el:"O", pos:[0,1.2,0]},
+      {el:"O", pos:[0,-1.2,0]},
+      {el:"O", pos:[0,0,1.2]}
+    ],
+    bonds:[{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1},{from:1,to:2,type:1},{from:1,to:3,type:1},{from:1,to:4,type:1}],
+    bondType:"Ionska", geometry:"Heksagonska",
+    description:"Zeleni pigment, iznimno tvrd.",
+    uses:"Zelena boja, abrazivi, krom galvanizacija"
+  },
+  {
+    formula:"Cu₂O", name:"Bakrov(I) oksid (kuprit)", ingredients:{Cu:2, O:1},
+    atoms:[
+      {el:"Cu", pos:[-1.84,0,0]},
+      {el:"O", pos:[0,0,0]},
+      {el:"Cu", pos:[1.84,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Kubna",
+    description:"Crveni mineral kuprit.",
+    uses:"Fungicid, boje, poluvodič"
+  },
+  {
+    formula:"Na₂O", name:"Natrijev oksid", ingredients:{Na:2, O:1},
+    atoms:[
+      {el:"Na", pos:[-2.0,0,0]},
+      {el:"O", pos:[0,0,0]},
+      {el:"Na", pos:[2.0,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Antifluoritna kristalna",
+    description:"Bijela kruta tvar, nastaje izgaranjem Na.",
+    uses:"Staklo, kemijska sinteza"
+  },
+  {
+    formula:"PbO", name:"Olovo(II) oksid (galenit)", ingredients:{Pb:1, O:1},
+    atoms:[{el:"Pb", pos:[-1.2,0,0]},{el:"O", pos:[1.2,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristalna",
+    description:"Žuti pigment, korišten u staklarstvu.",
+    uses:"Kristalno staklo, akumulatori, boje"
+  },
+  {
+    formula:"SnO₂", name:"Kositrov(IV) oksid (kasiterit)", ingredients:{Sn:1, O:2},
+    atoms:[
+      {el:"O", pos:[-1.0,0,0]},
+      {el:"Sn", pos:[0,0,0]},
+      {el:"O", pos:[1.0,0,0]}
+    ],
+    bonds:[{from:1,to:0,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Rutilna",
+    description:"Bijeli oksid kositra, mineral kasiterit.",
+    uses:"Poluvodič, boje za keramiku, optika"
+  },
+  {
+    formula:"P₂O₅", name:"Fosforov pentoksid", ingredients:{P:2, O:5},
+    atoms:[
+      {el:"P", pos:[-1.5,0,0]},
+      {el:"P", pos:[1.5,0,0]},
+      {el:"O", pos:[0,0,0]},
+      {el:"O", pos:[-2.5,1.0,0]},
+      {el:"O", pos:[-2.5,-1.0,0]},
+      {el:"O", pos:[2.5,1.0,0]},
+      {el:"O", pos:[2.5,-1.0,0]}
+    ],
+    bonds:[{from:0,to:2,type:1},{from:1,to:2,type:1},{from:0,to:3,type:2},{from:0,to:4,type:1},{from:1,to:5,type:2},{from:1,to:6,type:1}],
+    bondType:"Kovalentna", geometry:"Tetaedarska oko P",
+    description:"Moćan dehidracijski agens.",
+    uses:"Sušenje plinova, sinteza fosforne kiseline"
+  },
+
+  // ── Hidroksidi ───────────────────────────────────────────────────────────
+  {
+    formula:"Mg(OH)₂", name:"Magnezijev hidroksid (magnezijevo mlijeko)", ingredients:{Mg:1, O:2, H:2},
+    atoms:[
+      {el:"Mg", pos:[0,0,0]},
+      {el:"O", pos:[2.0,0,0]},
+      {el:"O", pos:[-2.0,0,0]},
+      {el:"H", pos:[2.96,0,0]},
+      {el:"H", pos:[-2.96,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:1,to:3,type:1},{from:2,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Linearna",
+    description:"Blaga baza, koristi se kao antacid.",
+    uses:"Antacid, leksativ, usporivač gorenja"
+  },
+  {
+    formula:"Fe(OH)₂", name:"Željezo(II) hidroksid", ingredients:{Fe:1, O:2, H:2},
+    atoms:[
+      {el:"Fe", pos:[0,0,0]},
+      {el:"O", pos:[2.0,0,0]},
+      {el:"O", pos:[-2.0,0,0]},
+      {el:"H", pos:[2.96,0,0]},
+      {el:"H", pos:[-2.96,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:1,to:3,type:1},{from:2,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Oktaedarska",
+    description:"Zeleni talog, oksidira na zraku u Fe(OH)₃.",
+    uses:"Pigmenti, analitička kemija"
+  },
+  {
+    formula:"Fe(OH)₃", name:"Željezo(III) hidroksid", ingredients:{Fe:1, O:3, H:3},
+    atoms:[
+      {el:"Fe", pos:[0,0,0]},
+      {el:"O", pos:[1.8,0,0]},
+      {el:"O", pos:[-0.9,1.56,0]},
+      {el:"O", pos:[-0.9,-1.56,0]},
+      {el:"H", pos:[2.76,0,0]},
+      {el:"H", pos:[-1.86,1.56,0]},
+      {el:"H", pos:[-1.86,-1.56,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:1,to:4,type:1},{from:2,to:5,type:1},{from:3,to:6,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Oktaedarska",
+    description:"Crveno-smeđi talog, hrđa u vlažnoj sredini.",
+    uses:"Pigmenti (Venecijansko crvena), analitika"
+  },
+  {
+    formula:"Al(OH)₃", name:"Aluminijev hidroksid", ingredients:{Al:1, O:3, H:3},
+    atoms:[
+      {el:"Al", pos:[0,0,0]},
+      {el:"O", pos:[1.7,0,0]},
+      {el:"O", pos:[-0.85,1.47,0]},
+      {el:"O", pos:[-0.85,-1.47,0]},
+      {el:"H", pos:[2.66,0,0]},
+      {el:"H", pos:[-1.81,1.47,0]},
+      {el:"H", pos:[-1.81,-1.47,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:1,to:4,type:1},{from:2,to:5,type:1},{from:3,to:6,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Oktaedarska",
+    description:"Amfoterna baza, neutralizira i kiseline i luge.",
+    uses:"Antacid, prečišćavanje vode, keramika"
+  },
+  {
+    formula:"Cu(OH)₂", name:"Bakrov(II) hidroksid", ingredients:{Cu:1, O:2, H:2},
+    atoms:[
+      {el:"Cu", pos:[0,0,0]},
+      {el:"O", pos:[2.0,0,0]},
+      {el:"O", pos:[-2.0,0,0]},
+      {el:"H", pos:[2.96,0,0]},
+      {el:"H", pos:[-2.96,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:1,to:3,type:1},{from:2,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Kvadratno planarna",
+    description:"Plavi talog, koristi se u fungicidima.",
+    uses:"Fungicidi, katalizator"
+  },
+  {
+    formula:"Zn(OH)₂", name:"Cinkov hidroksid", ingredients:{Zn:1, O:2, H:2},
+    atoms:[
+      {el:"Zn", pos:[0,0,0]},
+      {el:"O", pos:[2.0,0,0]},
+      {el:"O", pos:[-2.0,0,0]},
+      {el:"H", pos:[2.96,0,0]},
+      {el:"H", pos:[-2.96,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:1,to:3,type:1},{from:2,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska",
+    description:"Bijeli talog, amfotern poput Al(OH)₃.",
+    uses:"Kozmetika, farmaceutika"
+  },
+
+  // ── Sulfati ──────────────────────────────────────────────────────────────
+  {
+    formula:"Na₂SO₄", name:"Natrijev sulfat (Glauberova sol)", ingredients:{Na:2, S:1, O:4},
+    atoms:[
+      {el:"Na", pos:[-3.0,0,0]},
+      {el:"Na", pos:[3.0,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[{from:2,to:3,type:2},{from:2,to:4,type:2},{from:2,to:5,type:1},{from:2,to:6,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko S",
+    description:"Glauberova sol, laksativ i industrijska kemikalija.",
+    uses:"Papir, staklo, deterdženti"
+  },
+  {
+    formula:"K₂SO₄", name:"Kalijev sulfat", ingredients:{K:2, S:1, O:4},
+    atoms:[
+      {el:"K", pos:[-3.2,0,0]},
+      {el:"K", pos:[3.2,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[{from:2,to:3,type:2},{from:2,to:4,type:2},{from:2,to:5,type:1},{from:2,to:6,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko S",
+    description:"Bijela sol, bezklorna kalijeva sol za gnojiva.",
+    uses:"Gnojivo, staklarstvo, prehrambena industrija"
+  },
+  {
+    formula:"MgSO₄", name:"Magnezijev sulfat (gorka sol)", ingredients:{Mg:1, S:1, O:4},
+    atoms:[
+      {el:"Mg", pos:[-2.5,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:2},{from:1,to:4,type:1},{from:1,to:5,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko S",
+    description:"Epsomova sol, opušta mišiće u kupkama.",
+    uses:"Medicina, gnojivo, beton"
+  },
+  {
+    formula:"CaSO₄", name:"Kalcijev sulfat (gips)", ingredients:{Ca:1, S:1, O:4},
+    atoms:[
+      {el:"Ca", pos:[-2.7,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:2},{from:1,to:4,type:1},{from:1,to:5,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko S",
+    description:"Gips, anhidrit. Pečeni gips stvrdnjuje s vodom.",
+    uses:"Gips za lomove, žbuka, tofu"
+  },
+  {
+    formula:"FeSO₄", name:"Željezo(II) sulfat (zelena galica)", ingredients:{Fe:1, S:1, O:4},
+    atoms:[
+      {el:"Fe", pos:[-2.5,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:2},{from:1,to:4,type:1},{from:1,to:5,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko S",
+    description:"Zelena galica, suplement željeza.",
+    uses:"Gnojivo, tinta, obrada voda"
+  },
+  {
+    formula:"ZnSO₄", name:"Cinkov sulfat (bijela galica)", ingredients:{Zn:1, S:1, O:4},
+    atoms:[
+      {el:"Zn", pos:[-2.5,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:2},{from:1,to:4,type:1},{from:1,to:5,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko S",
+    description:"Bijela galica, suplement cinka.",
+    uses:"Gnojivo, medicine, tiskanje tkanina"
+  },
+  {
+    formula:"Al₂(SO₄)₃", name:"Aluminijev sulfat", ingredients:{Al:2, S:3, O:12},
+    atoms:[
+      {el:"Al", pos:[-3.0,0,0]},
+      {el:"Al", pos:[3.0,0,0]},
+      {el:"S", pos:[0,1.5,0]},
+      {el:"S", pos:[-1.5,-1.0,0]},
+      {el:"S", pos:[1.5,-1.0,0]},
+      {el:"O", pos:[0,2.93,0]},
+      {el:"O", pos:[-1.5,-2.43,0]},
+      {el:"O", pos:[1.5,-2.43,0]}
+    ],
+    bonds:[{from:2,to:5,type:2},{from:3,to:6,type:2},{from:4,to:7,type:2}],
+    bondType:"Ionska + kovalentna", geometry:"Oktaedarska oko Al",
+    description:"Stipsa, flokulant za pročišćavanje vode.",
+    uses:"Pročišćavanje vode, kožarstvo, papir"
+  },
+
+  // ── Sulfidi ──────────────────────────────────────────────────────────────
+  {
+    formula:"Na₂S", name:"Natrijev sulfid", ingredients:{Na:2, S:1},
+    atoms:[
+      {el:"Na", pos:[-2.0,0,0]},
+      {el:"S", pos:[0,0,0]},
+      {el:"Na", pos:[2.0,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Antifluoritna kristalna",
+    description:"Žuta do crvena sol, miris H₂S.",
+    uses:"Kožarstvo, tekstil, fotograf. emulzije"
+  },
+  {
+    formula:"FeS", name:"Željezo(II) sulfid", ingredients:{Fe:1, S:1},
+    atoms:[{el:"Fe", pos:[-1.0,0,0]},{el:"S", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Nikelin (heksagonska)",
+    description:"Crni mineral troilit.",
+    uses:"Sinteza, vatromet, lubrikansi"
+  },
+  {
+    formula:"FeS₂", name:"Željezni disulfid (pirit)", ingredients:{Fe:1, S:2},
+    atoms:[
+      {el:"S", pos:[0,-1.18,0]},
+      {el:"Fe", pos:[0,0,0]},
+      {el:"S", pos:[0,1.18,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Kubna (pirit)",
+    description:"Zlatni pirit, 'zlato budala'. Kuban kristal.",
+    uses:"Sinteza H₂SO₄, elektronika"
+  },
+  {
+    formula:"ZnS", name:"Cinkov sulfid (sfalerit)", ingredients:{Zn:1, S:1},
+    atoms:[{el:"Zn", pos:[-1.0,0,0]},{el:"S", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Sfaleritna (kubna)",
+    description:"Mineral sfalerit, najvažnija ruda cinka.",
+    uses:"Ekstrakcija cinka, luminofori, poluvodiči"
+  },
+  {
+    formula:"CuS", name:"Bakrov(II) sulfid (kovelin)", ingredients:{Cu:1, S:1},
+    atoms:[{el:"Cu", pos:[-1.0,0,0]},{el:"S", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Heksagonska",
+    description:"Mineral kovelin, indigo-plav.",
+    uses:"Bakarna ruda, poluvodič"
+  },
+  {
+    formula:"PbS", name:"Olovo(II) sulfid (galenit)", ingredients:{Pb:1, S:1},
+    atoms:[{el:"Pb", pos:[-1.5,0,0]},{el:"S", pos:[1.5,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristalna (FCC)",
+    description:"Mineral galenit, najvažnija ruda olova.",
+    uses:"Ekstrakcija olova, poluvodič"
+  },
+
+  // ── Nitrati ──────────────────────────────────────────────────────────────
+  {
+    formula:"NaNO₃", name:"Natrijev nitrat (čilska šalitra)", ingredients:{Na:1, N:1, O:3},
+    atoms:[
+      {el:"Na", pos:[-2.7,0,0]},
+      {el:"N", pos:[0,0,0]},
+      {el:"O", pos:[1.21,0.42,0]},
+      {el:"O", pos:[-1.21,0.42,0]},
+      {el:"O", pos:[0,-1.27,0]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:1},{from:1,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Trigonska planarna (NO₃⁻)",
+    description:"Čilska šalitra, topivo gnojivo.",
+    uses:"Gnojivo, hrana (konzervans E251), pirotehnija"
+  },
+  {
+    formula:"KNO₃", name:"Kalijev nitrat (kalijev šalitra)", ingredients:{K:1, N:1, O:3},
+    atoms:[
+      {el:"K", pos:[-2.9,0,0]},
+      {el:"N", pos:[0,0,0]},
+      {el:"O", pos:[1.21,0.42,0]},
+      {el:"O", pos:[-1.21,0.42,0]},
+      {el:"O", pos:[0,-1.27,0]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:1},{from:1,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Trigonska planarna (NO₃⁻)",
+    description:"Salitre, sastavnica baruta.",
+    uses:"Barut, gnojivo, konzervans mesa"
+  },
+  {
+    formula:"NH₄NO₃", name:"Amonijev nitrat", ingredients:{N:2, H:4, O:3},
+    atoms:[
+      {el:"N", pos:[-2.0,0,0]},
+      {el:"H", pos:[-2.63,0.63,0.63]},
+      {el:"H", pos:[-2.63,-0.63,-0.63]},
+      {el:"H", pos:[-2.63,0.63,-0.63]},
+      {el:"H", pos:[-2.63,-0.63,0.63]},
+      {el:"N", pos:[0.5,0,0]},
+      {el:"O", pos:[1.71,0.42,0]},
+      {el:"O", pos:[-0.71,0.42,0]},
+      {el:"O", pos:[0.5,-1.27,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1},{from:5,to:6,type:2},{from:5,to:7,type:1},{from:5,to:8,type:1}],
+    bondType:"Ionska (NH₄⁺ NO₃⁻)", geometry:"Tetraedar + trigonska planarna",
+    description:"Bijela sol, jako gnojivo i oksidans.",
+    uses:"Gnojivo ANFO, eksplozivi"
+  },
+  {
+    formula:"NaNO₂", name:"Natrijev nitrit", ingredients:{Na:1, N:1, O:2},
+    atoms:[
+      {el:"Na", pos:[-2.5,0,0]},
+      {el:"N", pos:[0,0.2,0]},
+      {el:"O", pos:[1.1,-0.5,0]},
+      {el:"O", pos:[-1.1,-0.5,0]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Savijena (NO₂⁻)",
+    description:"Sol nitrozne kiseline, oksidans.",
+    uses:"Konzervans mesa (E250), bojenje"
+  },
+
+  // ── Karbonati ────────────────────────────────────────────────────────────
+  {
+    formula:"MgCO₃", name:"Magnezijev karbonat (magnezit)", ingredients:{Mg:1, C:1, O:3},
+    atoms:[
+      {el:"Mg", pos:[-2.5,0,0]},
+      {el:"C", pos:[0,0,0]},
+      {el:"O", pos:[0,1.27,0]},
+      {el:"O", pos:[1.16,-0.66,0]},
+      {el:"O", pos:[-1.16,-0.66,0]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:1},{from:1,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Trigonska planarna",
+    description:"Mineral magnezit, bijela kruta tvar.",
+    uses:"Vatrostalni materijal, antacid, gimnastika"
+  },
+  {
+    formula:"K₂CO₃", name:"Kalijev karbonat (potaša)", ingredients:{K:2, C:1, O:3},
+    atoms:[
+      {el:"K", pos:[-2.7,0.5,0]},
+      {el:"K", pos:[2.7,0.5,0]},
+      {el:"C", pos:[0,0,0]},
+      {el:"O", pos:[0,1.27,0]},
+      {el:"O", pos:[1.16,-0.66,0]},
+      {el:"O", pos:[-1.16,-0.66,0]}
+    ],
+    bonds:[{from:2,to:3,type:2},{from:2,to:4,type:1},{from:2,to:5,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Trigonska planarna",
+    description:"Potaša, dobivena iz pepela drva.",
+    uses:"Staklarstvo, sapun, kakao"
+  },
+  {
+    formula:"FeCO₃", name:"Željezov(II) karbonat (siderit)", ingredients:{Fe:1, C:1, O:3},
+    atoms:[
+      {el:"Fe", pos:[-2.5,0,0]},
+      {el:"C", pos:[0,0,0]},
+      {el:"O", pos:[0,1.27,0]},
+      {el:"O", pos:[1.16,-0.66,0]},
+      {el:"O", pos:[-1.16,-0.66,0]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:1},{from:1,to:4,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Trigonska planarna",
+    description:"Mineral siderit, ruda željeza.",
+    uses:"Ruda željeza, gemolog"
+  },
+
+  // ── Fosfati ──────────────────────────────────────────────────────────────
+  {
+    formula:"Na₃PO₄", name:"Trinatrijev fosfat (TSP)", ingredients:{Na:3, P:1, O:4},
+    atoms:[
+      {el:"Na", pos:[-3.0,0,0]},
+      {el:"Na", pos:[3.0,0,0]},
+      {el:"Na", pos:[0,3.0,0]},
+      {el:"P", pos:[0,0,0]},
+      {el:"O", pos:[0,1.5,0]},
+      {el:"O", pos:[1.4,-0.5,0]},
+      {el:"O", pos:[-0.7,-0.5,1.21]},
+      {el:"O", pos:[-0.7,-0.5,-1.21]}
+    ],
+    bonds:[{from:3,to:4,type:2},{from:3,to:5,type:1},{from:3,to:6,type:1},{from:3,to:7,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Tetraedarska oko P",
+    description:"Trinatrijev fosfat, jako alkalna sol.",
+    uses:"Čišćenje, deterdženti, obrада metala"
+  },
+  {
+    formula:"Ca₃(PO₄)₂", name:"Kalcijev fosfat (apatit)", ingredients:{Ca:3, P:2, O:8},
+    atoms:[
+      {el:"Ca", pos:[-3.0,0,0]},
+      {el:"Ca", pos:[0,2.5,0]},
+      {el:"Ca", pos:[3.0,0,0]},
+      {el:"P", pos:[-1.2,-1.0,0]},
+      {el:"P", pos:[1.2,-1.0,0]},
+      {el:"O", pos:[-1.2,-2.5,0]},
+      {el:"O", pos:[1.2,-2.5,0]},
+      {el:"O", pos:[0,-0.5,0]}
+    ],
+    bonds:[{from:3,to:5,type:2},{from:3,to:7,type:1},{from:4,to:6,type:2},{from:4,to:7,type:1}],
+    bondType:"Ionska + kovalentna", geometry:"Kompleksna kristalna",
+    description:"Mineral apatit, gradivni dio kosti i zubi.",
+    uses:"Gnojivo, keramika, zubna pasta"
+  },
+
+  // ── Kiseline ─────────────────────────────────────────────────────────────
+  {
+    formula:"H₂SO₃", name:"Sumporna kiselina (IV)", ingredients:{H:2, S:1, O:3},
+    atoms:[
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[1.3,-0.7,0]},
+      {el:"O", pos:[-1.3,-0.7,0]},
+      {el:"H", pos:[2.0,-0.7,0]},
+      {el:"H", pos:[-2.0,-0.7,0]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:2,to:4,type:1},{from:3,to:5,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Piramidalna",
+    description:"Slaba kiselina, nastaje otapanjem SO₂ u vodi.",
+    uses:"Konzerviranje vina, industrija papira"
+  },
+  {
+    formula:"H₃BO₃", name:"Borna kiselina", ingredients:{H:3, B:1, O:3},
+    atoms:[
+      {el:"B", pos:[0,0,0]},
+      {el:"O", pos:[1.37,0,0]},
+      {el:"O", pos:[-0.69,1.19,0]},
+      {el:"O", pos:[-0.69,-1.19,0]},
+      {el:"H", pos:[2.33,0,0]},
+      {el:"H", pos:[-1.65,1.19,0]},
+      {el:"H", pos:[-1.65,-1.19,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:1,to:4,type:1},{from:2,to:5,type:1},{from:3,to:6,type:1}],
+    bondType:"Kovalentna", geometry:"Trigonska planarna",
+    description:"Antiseptična kiselina, nalazi se u morskoj vodi.",
+    uses:"Antiseptik, staklo, nuklearna tehnika"
+  },
+  {
+    formula:"HClO", name:"Klorovodična kiselina (HOCl)", ingredients:{H:1, Cl:1, O:1},
+    atoms:[
+      {el:"H", pos:[-1.7,0,0]},
+      {el:"O", pos:[-0.69,0,0]},
+      {el:"Cl", pos:[1.0,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Savijena",
+    description:"Hipoklorozna kiselina, snažni dezinficijens.",
+    uses:"Dezinfekcija vode, izbjeljivanje, antiseptici"
+  },
+
+  // ── Organski spojevi ─────────────────────────────────────────────────────
+  {
+    formula:"HCOOH", name:"Mravlja kiselina (metanska kiselina)", ingredients:{H:2, C:1, O:2},
+    atoms:[
+      {el:"H", pos:[-1.1,0,0]},
+      {el:"C", pos:[0,0,0]},
+      {el:"O", pos:[0.6,1.2,0]},
+      {el:"O", pos:[0.6,-1.0,0]},
+      {el:"H", pos:[1.56,-1.0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:2},{from:1,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Planarna",
+    description:"Najjednostavnija karboksilna kiselina, u ubodu mrava.",
+    uses:"Konzervans hrane, kožarstvo, tekstil"
+  },
+  {
+    formula:"CH₂O", name:"Formaldehid (metanal)", ingredients:{C:1, H:2, O:1},
+    atoms:[
+      {el:"C", pos:[0,0,0]},
+      {el:"O", pos:[0,1.2,0]},
+      {el:"H", pos:[0.94,-0.54,0]},
+      {el:"H", pos:[-0.94,-0.54,0]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Trigonska planarna",
+    description:"Plin oštrog mirisa, antiseptik i konzervans.",
+    uses:"Plastika (fenol-formaldehid), dezinfekcija"
+  },
+  {
+    formula:"C₃H₈", name:"Propan", ingredients:{C:3, H:8},
+    atoms:[
+      {el:"C", pos:[-1.54,0,0]},
+      {el:"C", pos:[0,0,0]},
+      {el:"C", pos:[1.54,0,0]},
+      {el:"H", pos:[-1.95,1.03,0]},
+      {el:"H", pos:[-1.95,-0.51,0.89]},
+      {el:"H", pos:[-1.95,-0.51,-0.89]},
+      {el:"H", pos:[0,1.09,0]},
+      {el:"H", pos:[0,-1.09,0]},
+      {el:"H", pos:[1.95,1.03,0]},
+      {el:"H", pos:[1.95,-0.51,0.89]},
+      {el:"H", pos:[1.95,-0.51,-0.89]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1},{from:0,to:5,type:1},{from:1,to:6,type:1},{from:1,to:7,type:1},{from:2,to:8,type:1},{from:2,to:9,type:1},{from:2,to:10,type:1}],
+    bondType:"Nepolarna kovalentna", geometry:"Tetraedarska",
+    description:"Treći alkan, UNP plin u bocama.",
+    uses:"Plin u bocama za kuhanje, gorivo"
+  },
+  {
+    formula:"(CH₃)₂CO", name:"Aceton (propan-2-on)", ingredients:{C:3, H:6, O:1},
+    atoms:[
+      {el:"C", pos:[-1.5,0,0]},
+      {el:"C", pos:[0,0,0]},
+      {el:"C", pos:[1.5,0,0]},
+      {el:"O", pos:[0,1.22,0]},
+      {el:"H", pos:[-1.9,1.03,0]},
+      {el:"H", pos:[-1.9,-0.5,0.89]},
+      {el:"H", pos:[-1.9,-0.5,-0.89]},
+      {el:"H", pos:[1.9,1.03,0]},
+      {el:"H", pos:[1.9,-0.5,0.89]},
+      {el:"H", pos:[1.9,-0.5,-0.89]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:1,to:3,type:2},{from:0,to:4,type:1},{from:0,to:5,type:1},{from:0,to:6,type:1},{from:2,to:7,type:1},{from:2,to:8,type:1},{from:2,to:9,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Trigonska planarna oko C=O",
+    description:"Najjednostavniji keton, hlapivo otapalo.",
+    uses:"Otapalo, lak za nokte, plastika"
+  },
+  {
+    formula:"C₆H₅OH", name:"Fenol", ingredients:{C:6, H:6, O:1},
+    atoms:[
+      {el:"C", pos:[1.4,0,0]},
+      {el:"C", pos:[0.7,1.21,0]},
+      {el:"C", pos:[-0.7,1.21,0]},
+      {el:"C", pos:[-1.4,0,0]},
+      {el:"C", pos:[-0.7,-1.21,0]},
+      {el:"C", pos:[0.7,-1.21,0]},
+      {el:"O", pos:[2.53,0,0]},
+      {el:"H", pos:[3.43,0,0]},
+      {el:"H", pos:[1.24,2.16,0]},
+      {el:"H", pos:[-1.24,2.16,0]},
+      {el:"H", pos:[-2.49,0,0]},
+      {el:"H", pos:[-1.24,-2.16,0]},
+      {el:"H", pos:[1.24,-2.16,0]}
+    ],
+    bonds:[
+      {from:0,to:1,type:2},{from:1,to:2,type:1},{from:2,to:3,type:2},
+      {from:3,to:4,type:1},{from:4,to:5,type:2},{from:5,to:0,type:1},
+      {from:0,to:6,type:1},{from:6,to:7,type:1},
+      {from:1,to:8,type:1},{from:2,to:9,type:1},{from:3,to:10,type:1},
+      {from:4,to:11,type:1},{from:5,to:12,type:1}
+    ],
+    bondType:"Aromatska + kovalentna", geometry:"Planarna (benzenski prsten)",
+    description:"Aromatski spoj s OH grupom, karbonska kiselina.",
+    uses:"Antiseptik, plastika (Bakelit), lijekovi"
+  },
+
+  // ── Dušični spojevi ──────────────────────────────────────────────────────
+  {
+    formula:"(NH₄)₂SO₄", name:"Amonijev sulfat", ingredients:{N:2, H:8, S:1, O:4},
+    atoms:[
+      {el:"N", pos:[-3.0,0,0]},
+      {el:"H", pos:[-3.63,0.63,0.63]},
+      {el:"H", pos:[-3.63,-0.63,-0.63]},
+      {el:"H", pos:[-3.63,0.63,-0.63]},
+      {el:"H", pos:[-3.63,-0.63,0.63]},
+      {el:"N", pos:[3.0,0,0]},
+      {el:"H", pos:[3.63,0.63,0.63]},
+      {el:"H", pos:[3.63,-0.63,-0.63]},
+      {el:"H", pos:[3.63,0.63,-0.63]},
+      {el:"H", pos:[3.63,-0.63,0.63]},
+      {el:"S", pos:[0,0,0]},
+      {el:"O", pos:[0,1.43,0]},
+      {el:"O", pos:[0,-1.43,0]},
+      {el:"O", pos:[1.4,0,0.7]},
+      {el:"O", pos:[-1.4,0,0.7]}
+    ],
+    bonds:[
+      {from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1},
+      {from:5,to:6,type:1},{from:5,to:7,type:1},{from:5,to:8,type:1},{from:5,to:9,type:1},
+      {from:10,to:11,type:2},{from:10,to:12,type:2},{from:10,to:13,type:1},{from:10,to:14,type:1}
+    ],
+    bondType:"Ionska (2×NH₄⁺ SO₄²⁻)", geometry:"Dva tetraedra + SO₄",
+    description:"Bijela sol, jedno od najvažnijih gnojiva.",
+    uses:"Gnojivo (21% N), vatrostalni materijali"
   }
 ];

@@ -6,7 +6,7 @@
 //   color: boja za 3D prikaz}
 
 window.ELEMENTS = [
-  {n:1,s:"H",name:"Vodik",m:1.008,cat:"nonmetal",grp:"1",per:1,row:1,col:1,ec:"1s¹",mp:-259.16,bp:-252.87,phase:"Plin",disc:"H. Cavendish, 1766.",use:"Gorivo, sinteza amonijaka, voda",color:0xffffff,en:2.20},
+  {n:1,s:"H",name:"Vodik",m:1.008,cat:"hydrogen",grp:"1",per:1,row:1,col:1,ec:"1s¹",mp:-259.16,bp:-252.87,phase:"Plin",disc:"H. Cavendish, 1766.",use:"Gorivo, sinteza amonijaka, voda",color:0xffffff,en:2.20},
   {n:2,s:"He",name:"Helij",m:4.0026,cat:"noble",grp:"18",per:1,row:1,col:18,ec:"1s²",mp:-272.2,bp:-268.93,phase:"Plin",disc:"Janssen i Lockyer, 1868.",use:"Baloni, hlađenje MR uređaja, ronjenje",color:0xd9ffff,en:0},
   {n:3,s:"Li",name:"Litij",m:6.94,cat:"alkali",grp:"1",per:2,row:2,col:1,ec:"[He] 2s¹",mp:180.5,bp:1342,phase:"Krutina",disc:"J. A. Arfwedson, 1817.",use:"Baterije, lijekovi, legure",color:0xcc80ff,en:0.98},
   {n:4,s:"Be",name:"Berilij",m:9.0122,cat:"alkaline",grp:"2",per:2,row:2,col:2,ec:"[He] 2s²",mp:1287,bp:2469,phase:"Krutina",disc:"L. Vauquelin, 1798.",use:"Zrakoplovne legure, prozori za rendgen",color:0xc2ff00,en:1.57},
@@ -127,16 +127,17 @@ window.ELEMENTS = [
 ];
 
 window.CATEGORIES = {
-  alkali:     { name:"Alkalijski metal",      color:0xff8a65 },
-  alkaline:   { name:"Zemnoalkalijski metal", color:0xffb74d },
+  hydrogen:   { name:"Vodik",                 color:0xffd54f },
+  alkali:     { name:"Alkalijski metal",      color:0x26c6da },
+  alkaline:   { name:"Zemnoalkalijski metal", color:0x26a69a },
   transition: { name:"Prijelazni metal",      color:0xf06292 },
   post:       { name:"Posprijelazni metal",   color:0x4db6ac },
-  metalloid:  { name:"Polumetal",             color:0x9ccc65 },
-  nonmetal:   { name:"Reaktivni nemetal",     color:0x64b5f6 },
-  halogen:    { name:"Halogeni element",      color:0x9575cd },
-  noble:      { name:"Plemeniti plin",        color:0xe57373 },
-  lanthanide: { name:"Lantanoid",             color:0xa1887f },
-  actinide:   { name:"Aktinoid",              color:0x90a4ae }
+  metalloid:  { name:"Polumetal",             color:0xffa726 },
+  nonmetal:   { name:"Reaktivni nemetal",     color:0x7e57c2 },
+  halogen:    { name:"Halogeni element",      color:0xef5350 },
+  noble:      { name:"Plemeniti plin",        color:0xec407a },
+  lanthanide: { name:"Lantanoid",             color:0xff8a65 },
+  actinide:   { name:"Aktinoid",              color:0xf48fb1 }
 };
 
 // Bohrov model: distribuirati elektrone po ljuskama (K, L, M, N, O, P, Q)
