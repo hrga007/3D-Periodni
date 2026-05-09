@@ -30,6 +30,8 @@ let mixer = [];
 let isMobile = false;
 let chamberState = 'standard';
 let activeCategory = null;
+let chamberTranslateY = 0; // px, 0 = fully expanded
+let periodScanEl = null;
 
 const SPACING   = 1.65;
 const CARD_SIZE = 1.45;
@@ -42,6 +44,7 @@ function init() {
   canvasWrap = document.querySelector('.canvas-wrap');
 
   checkMobile();
+  periodScanEl = document.getElementById('period-scan');
 
   // ── Glavna scena ──────────────────────────────────────────
   scene = new THREE.Scene();
@@ -79,8 +82,10 @@ function init() {
   setupListeners();
   setupChamberSwipe();
   initMagicChamber();
+  initChamberTransform();
   animate();
   hideLoading();
+  if (isMobile) initOnboarding();
 }
 
 function addDirLight(sc, color, intensity, x, y, z) {
@@ -111,7 +116,32 @@ function hideLoading() {
 // MOBILNA DETEKCIJA
 // =============================================================
 function checkMobile() {
+  const wasMobile = isMobile;
   isMobile = window.innerWidth <= 900;
+
+  const panel = document.querySelector('.right-panel');
+  if (!panel) return;
+  if (isMobile && !wasMobile) {
+    chamberTranslateY = snapYForState(chamberState);
+    panel.style.transform = `translateY(${chamberTranslateY}px)`;
+  } else if (!isMobile && wasMobile) {
+    panel.style.transform = '';
+  }
+}
+
+function snapYForState(state) {
+  const panelH = window.innerHeight * 0.9;
+  if (state === 'mini')     return panelH - 64;
+  if (state === 'full')     return 0;
+  return Math.max(0, panelH - window.innerWidth * 0.46);
+}
+
+function initChamberTransform() {
+  if (!isMobile) return;
+  const panel = document.querySelector('.right-panel');
+  if (!panel) return;
+  chamberTranslateY = snapYForState(chamberState);
+  panel.style.transform = `translateY(${chamberTranslateY}px)`;
 }
 
 // =============================================================
@@ -640,6 +670,7 @@ function onPointerUp(e) {
   if (!wasInitiated) {
     // Tap — na mobu prikaži action sheet, na desktopu odmah atom
     if (isMobile) {
+      showTapSpotlight(cx, cy, el);
       showActionSheet(el);
     } else {
       showAtom(el);
@@ -767,8 +798,8 @@ function showActionSheet(element) {
         </div>
       </div>
       <div class="as-actions">
-        <button class="as-btn-primary"  onclick="sheetShowAtom()">⚛ Prikaži atom</button>
         <button class="as-btn-secondary" onclick="sheetAddToChamber()">✦ Dodaj u komoru</button>
+        <button class="as-btn-primary"  onclick="sheetShowAtom()">⚛ Prikaži atom</button>
       </div>
       ${hintsHtml}
     `;
@@ -831,19 +862,31 @@ window.jumpToPeriod = function(p) {
   if (!periodCards.length) return;
 
   const avgY = periodCards.reduce((s, c) => s + c.position.y, 0) / periodCards.length;
-  const avgX = 0; // centar X
   const dist  = camera.position.distanceTo(controls.target);
 
   animateCameraTo(
-    new THREE.Vector3(avgX, avgY, dist),
-    new THREE.Vector3(avgX, avgY, 0)
+    new THREE.Vector3(0, avgY, dist),
+    new THREE.Vector3(0, avgY, 0)
   );
 
-  // Vizualni feedback na gumbima
-  document.querySelectorAll('.period-btn').forEach((btn, i) => {
+  // Highlight period pill u control railu
+  document.querySelectorAll('.period-pill').forEach((btn, i) => {
     btn.classList.toggle('active', i + 1 === p);
   });
-  setTimeout(() => document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active')), 1400);
+  setTimeout(() => document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active')), 1400);
+
+  // Scan-line efekt: projectira Y poziciju perioda na ekran
+  if (periodScanEl && canvasEl) {
+    const v = new THREE.Vector3(0, avgY, 0);
+    v.project(camera);
+    const rect = canvasEl.getBoundingClientRect();
+    const screenY = -(v.y - 1) / 2 * rect.height;
+    periodScanEl.style.top = Math.round(screenY) + 'px';
+    periodScanEl.classList.remove('flash');
+    void periodScanEl.offsetWidth;
+    periodScanEl.classList.add('flash');
+    setTimeout(() => periodScanEl.classList.remove('flash'), 950);
+  }
 
   // Kratko istakni period, ostatak priguši
   if (currentObject) {
@@ -866,19 +909,25 @@ window.jumpToPeriod = function(p) {
 };
 
 // =============================================================
-// CATEGORY FILTER PILLS
+// UNIFIED CONTROL RAIL (kategorije + periodi)
 // =============================================================
-function buildCategoryPills() {
-  const el = document.getElementById('category-pills');
+function buildControlRail() {
+  const el = document.getElementById('control-rail');
   if (!el) return;
-  el.innerHTML = Object.entries(window.CATEGORIES).map(([k, v]) => {
+
+  const catPills = Object.entries(window.CATEGORIES).map(([k, v]) => {
     const hex = '#' + v.color.toString(16).padStart(6, '0');
     const label = v.name.length > 12 ? v.name.split(' ')[0] : v.name;
-    return `<button class="cat-pill" data-cat="${k}" onclick="toggleCategory('${k}')"
-      style="--cat-color:${hex}">
+    return `<button class="cat-pill" data-cat="${k}" onclick="toggleCategory('${k}')" style="--cat-color:${hex}">
       <span class="cat-dot" style="background:${hex}"></span>${label}
     </button>`;
   }).join('');
+
+  const periodPills = [1,2,3,4,5,6,7].map(p =>
+    `<button class="period-pill" id="pp-${p}" onclick="jumpToPeriod(${p})">${p}</button>`
+  ).join('');
+
+  el.innerHTML = catPills + '<span class="rail-sep"></span>' + periodPills;
 }
 
 window.toggleCategory = function(cat) {
@@ -914,42 +963,66 @@ window.setChamberState = function(state) {
   if (!panel) return;
   panel.className = panel.className.replace(/\bchamber-\S+/g, '').trim();
   panel.classList.add('chamber-' + state);
-  setTimeout(onResize, 340);
+
+  if (isMobile) {
+    chamberTranslateY = snapYForState(state);
+    panel.style.transform = `translateY(${chamberTranslateY}px)`;
+    // Chamber canvas resize samo nakon animacije
+    setTimeout(() => {
+      const cc = document.getElementById('chamber-canvas');
+      if (cc && chamberRenderer) {
+        const cw = cc.clientWidth, ch = cc.clientHeight;
+        if (cw > 0 && ch > 0) {
+          chamberCamera.aspect = cw / ch; chamberCamera.updateProjectionMatrix();
+          chamberRenderer.setSize(cw, ch, false);
+        }
+      }
+      resizeMistCanvas();
+    }, 340);
+  } else {
+    setTimeout(onResize, 340);
+  }
   haptic('light');
 };
 
-// Swipe ručka
+// Swipe ručka — transform-based (ne mijenja layout, 60fps)
 function setupChamberSwipe() {
   const handle = document.getElementById('chamber-handle');
   if (!handle) return;
-  let startY = 0, startH = 0;
+  let touchStartY = 0, startTranslate = 0;
 
   handle.addEventListener('touchstart', e => {
     if (!isMobile) return;
-    startY = e.touches[0].clientY;
+    touchStartY = e.touches[0].clientY;
+    startTranslate = chamberTranslateY;
+    // Isključi transition za live drag
     const panel = document.querySelector('.right-panel');
-    startH = panel ? panel.offsetHeight : 200;
+    if (panel) panel.style.transition = 'none';
     e.preventDefault();
   }, { passive: false });
 
   handle.addEventListener('touchmove', e => {
     if (!isMobile) return;
-    const dy = startY - e.touches[0].clientY;
-    const newH = Math.max(60, Math.min(window.innerHeight * .83, startH + dy));
+    const dy = e.touches[0].clientY - touchStartY;
+    const panelH = window.innerHeight * 0.9;
+    chamberTranslateY = Math.max(0, Math.min(panelH - 64, startTranslate + dy));
     const panel = document.querySelector('.right-panel');
-    if (panel) panel.style.height = newH + 'px';
+    if (panel) panel.style.transform = `translateY(${chamberTranslateY}px)`;
     e.preventDefault();
   }, { passive: false });
 
   handle.addEventListener('touchend', () => {
     if (!isMobile) return;
     const panel = document.querySelector('.right-panel');
-    const h = panel ? panel.offsetHeight : 200;
-    const vh = window.innerHeight;
-    if (panel) panel.style.height = ''; // ukloni inline, klasa preuzima
-    if (h < vh * .18)      window.setChamberState('mini');
-    else if (h < vh * .55) window.setChamberState('standard');
-    else                    window.setChamberState('full');
+    // Vrati transition za snap animaciju
+    if (panel) panel.style.transition = '';
+
+    const panelH = window.innerHeight * 0.9;
+    const visible = panelH - chamberTranslateY;
+
+    if (visible < panelH * 0.18)      window.setChamberState('mini');
+    else if (visible < panelH * 0.60) window.setChamberState('standard');
+    else                               window.setChamberState('full');
   });
 }
 
@@ -1439,7 +1512,17 @@ function hideResult() { document.getElementById('message')?.classList.remove('vi
 function setupUI() {
   updateInfoPanelDefault();
   renderMixer();
-  buildCategoryPills();
+  buildControlRail();
+}
+
+function applySearchFilter(q) {
+  currentObject?.children.forEach(card => {
+    if (!card.userData.isCard) return;
+    const el = card.userData.element;
+    const match = !q || el.s.toLowerCase().includes(q) || el.name.toLowerCase().includes(q) || String(el.n) === q;
+    card.material.forEach((m, i) => { if (i === 4) { m.opacity = match ? 1 : .11; m.transparent = !match; } });
+    card.scale.setScalar(match ? 1 : .92);
+  });
 }
 
 function setupListeners() {
@@ -1453,24 +1536,45 @@ function setupListeners() {
   window.addEventListener('pointerup', e=>{ if(dragState||panState) onPointerUp(e); }, {passive:true});
   window.addEventListener('resize', onResize);
   document.getElementById('btn-clear-chamber')?.addEventListener('click', clearChamber);
-  const search=document.getElementById('search');
-  if (search) search.addEventListener('input', e=>{
-    const q=e.target.value.trim().toLowerCase();
-    currentObject?.children.forEach(card=>{
-      if (!card.userData.isCard) return;
-      const el=card.userData.element;
-      const match=!q||el.s.toLowerCase().includes(q)||el.name.toLowerCase().includes(q)||String(el.n)===q;
-      card.material.forEach((m,i)=>{if(i===4){m.opacity=match?1:.11;m.transparent=!match;}});
-      card.scale.setScalar(match?1:.92);
-    });
-  });
+
+  // Desktop search
+  const search = document.getElementById('search');
+  if (search) search.addEventListener('input', e => applySearchFilter(e.target.value.trim().toLowerCase()));
+
+  // Mobile search overlay
+  const overlayInput = document.getElementById('search-overlay-input');
+  if (overlayInput) overlayInput.addEventListener('input', e => applySearchFilter(e.target.value.trim().toLowerCase()));
 }
+
+window.toggleMobileSearch = function() {
+  const overlay = document.getElementById('search-overlay');
+  if (!overlay) return;
+  const isActive = overlay.classList.toggle('active');
+  if (isActive) {
+    const input = document.getElementById('search-overlay-input');
+    setTimeout(() => input?.focus(), 80);
+  } else {
+    // Zatvori overlay i očisti filter
+    const input = document.getElementById('search-overlay-input');
+    if (input) { input.value = ''; applySearchFilter(''); }
+  }
+};
 
 function onResize() {
   checkMobile();
   const w=canvasEl.clientWidth, h=canvasEl.clientHeight;
   camera.aspect=w/h; camera.updateProjectionMatrix();
   renderer.setSize(w,h,false);
+
+  if (isMobile) {
+    // Recalculate transform on resize (orientation change)
+    const panel = document.querySelector('.right-panel');
+    if (panel) {
+      chamberTranslateY = snapYForState(chamberState);
+      panel.style.transform = `translateY(${chamberTranslateY}px)`;
+    }
+  }
+
   const cc=document.getElementById('chamber-canvas');
   if (cc&&chamberRenderer) {
     const cw=cc.clientWidth, ch=cc.clientHeight;
@@ -1481,6 +1585,59 @@ function onResize() {
   }
   resizeMistCanvas();
 }
+
+// =============================================================
+// ONBOARDING (prikazuje se samo prvi put na mobu)
+// =============================================================
+function initOnboarding() {
+  if (!isMobile) return;
+  if (localStorage.getItem('pn3d.tour') === 'done') return;
+  const overlay = document.getElementById('onboarding');
+  if (overlay) overlay.classList.add('active');
+}
+
+window.dismissOnboarding = function() {
+  localStorage.setItem('pn3d.tour', 'done');
+  const overlay = document.getElementById('onboarding');
+  if (!overlay) return;
+  overlay.style.transition = 'opacity 0.3s ease';
+  overlay.style.opacity = '0';
+  setTimeout(() => { overlay.classList.remove('active'); overlay.style.opacity = ''; }, 320);
+};
+
+// =============================================================
+// SPOTLIGHT TAP EFEKT (kratki radijalni sjaj na poziciji tapa)
+// =============================================================
+function showTapSpotlight(cx, cy, element) {
+  const cat = window.CATEGORIES[element.cat];
+  const hex = '#' + cat.color.toString(16).padStart(6, '0');
+  const spot = document.createElement('div');
+  spot.style.cssText = `
+    position: fixed; pointer-events: none; z-index: 9100;
+    left: ${cx}px; top: ${cy}px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: radial-gradient(circle, ${hex}66 0%, ${hex}22 40%, transparent 70%);
+    border: 1.5px solid ${hex}88;
+    animation: tap-spotlight 0.45s ease-out forwards;
+  `;
+  document.body.appendChild(spot);
+  setTimeout(() => spot.remove(), 500);
+}
+
+// CSS keyframes for spotlight (injected once)
+(function injectSpotlightCSS() {
+  if (document.getElementById('spotlight-style')) return;
+  const s = document.createElement('style');
+  s.id = 'spotlight-style';
+  s.textContent = `@keyframes tap-spotlight {
+    0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+    60%  { transform: translate(-50%,-50%) scale(1.4); opacity: 0.8; }
+    100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+  }`;
+  document.head.appendChild(s);
+})();
 
 // =============================================================
 // EXPORTS

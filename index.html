@@ -2,8 +2,11 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Periodni sustav 3D · Interaktivna kemija</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -15,6 +18,7 @@
         <span class="brand-text">Periodni sustav <strong>3D</strong></span>
       </div>
       <div class="topbar-actions">
+        <button id="btn-search-mobile" class="btn-search-mobile" onclick="toggleMobileSearch()" title="Traži">🔍</button>
         <input id="search" type="text" placeholder="Traži element…" autocomplete="off" />
         <button id="btn-clear-chamber" class="btn-action" title="Očisti komoru">
           <span>⊘</span> <span class="btn-label">Očisti</span>
@@ -22,8 +26,8 @@
       </div>
     </header>
 
-    <!-- Kategorija pillule — vidljive samo na mobilnom -->
-    <div id="category-pills" class="category-pills"></div>
+    <!-- Unified control rail (kategorije + periodi) — vidljivo samo na mobilnom -->
+    <div id="control-rail" class="control-rail"></div>
 
     <main class="main">
       <!-- Periodni sustav — uvijek vidljiv -->
@@ -38,17 +42,8 @@
           <span>🔍 Kotač = zoom &nbsp;✥ Drag = pomak</span>
         </div>
 
-        <!-- Period quick-jump — vidljiv samo na mobilnom -->
-        <div id="period-strip" class="period-strip">
-          <span class="period-label">↕</span>
-          <button class="period-btn" onclick="jumpToPeriod(1)">1</button>
-          <button class="period-btn" onclick="jumpToPeriod(2)">2</button>
-          <button class="period-btn" onclick="jumpToPeriod(3)">3</button>
-          <button class="period-btn" onclick="jumpToPeriod(4)">4</button>
-          <button class="period-btn" onclick="jumpToPeriod(5)">5</button>
-          <button class="period-btn" onclick="jumpToPeriod(6)">6</button>
-          <button class="period-btn" onclick="jumpToPeriod(7)">7</button>
-        </div>
+        <!-- Scan-line efekt za period jump -->
+        <div id="period-scan" class="period-scan"></div>
       </div>
 
       <!-- Desni panel: info + kocka komora -->
@@ -128,6 +123,38 @@
 
   <!-- Long-press lupa -->
   <div id="magnifier" class="magnifier"></div>
+
+  <!-- Mobile search overlay -->
+  <div id="search-overlay" class="search-overlay">
+    <div class="search-overlay-inner">
+      <span class="search-overlay-icon">🔍</span>
+      <input id="search-overlay-input" type="text" placeholder="Traži element po imenu ili simbolu…" autocomplete="off" />
+      <button class="search-overlay-close" onclick="toggleMobileSearch()">✕</button>
+    </div>
+  </div>
+
+  <!-- Onboarding overlay (prikazuje se samo prvi put) -->
+  <div id="onboarding" class="onboarding-overlay">
+    <div class="onboarding-backdrop" onclick="dismissOnboarding()"></div>
+    <div class="onboarding-card">
+      <div class="onboarding-title">Dobrodošao u <strong>Periodni sustav 3D</strong></div>
+      <div class="onboarding-steps">
+        <div class="onboarding-step" style="animation-delay:0.05s">
+          <div class="onboarding-icon">👆</div>
+          <div class="onboarding-text"><strong>Tap</strong> na element<br><small>Detalji i dodavanje u komoru</small></div>
+        </div>
+        <div class="onboarding-step" style="animation-delay:0.15s">
+          <div class="onboarding-icon">↕</div>
+          <div class="onboarding-text"><strong>Swipe</strong> komoru<br><small>Proširi ili smanji prikaz</small></div>
+        </div>
+        <div class="onboarding-step" style="animation-delay:0.25s">
+          <div class="onboarding-icon">🤌</div>
+          <div class="onboarding-text"><strong>Pinch</strong> za zoom<br><small>Pan prstom = pomak tablice</small></div>
+        </div>
+      </div>
+      <button class="onboarding-btn" onclick="dismissOnboarding()">Razumijem →</button>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
