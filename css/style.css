@@ -20,7 +20,7 @@
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: 'Sora', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   background: var(--bg-0);
   color: var(--text);
   overflow: hidden;
@@ -83,8 +83,8 @@ html, body {
 .btn-action:hover { background:rgba(0,212,255,.15); border-color:var(--border-strong); }
 .btn-action.active { background:rgba(0,212,255,.2); border-color:var(--accent); box-shadow:0 0 12px rgba(0,212,255,.3); }
 
-/* ── CATEGORY PILLS (mobilni filter) ─────────────────────── */
-.category-pills {
+/* ── CONTROL RAIL (unified: kategorije + periodi) ─────────── */
+.control-rail {
   display: none; /* skriveno na desktopu */
   gap: 6px;
   padding: 6px 12px;
@@ -94,8 +94,34 @@ html, body {
   background: linear-gradient(180deg,rgba(10,13,31,.9),rgba(7,9,22,.8));
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  align-items: center;
 }
-.category-pills::-webkit-scrollbar { display: none; }
+.control-rail::-webkit-scrollbar { display: none; }
+
+.rail-sep {
+  width: 1px; height: 22px;
+  background: rgba(255,255,255,.15);
+  flex-shrink: 0; margin: 0 4px;
+  align-self: center;
+}
+
+.period-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 28px; border-radius: 8px;
+  border: 1px solid rgba(0,212,255,.22);
+  background: rgba(0,212,255,.06);
+  color: var(--text-muted); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .18s; flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+.period-pill:active,
+.period-pill.active {
+  background: rgba(0,212,255,.22);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(0,212,255,.4);
+  transform: scale(1.1);
+}
 
 .cat-pill {
   display: inline-flex; align-items: center; gap: 5px;
@@ -167,36 +193,64 @@ html, body {
   font-size:11px; color:var(--text-muted); pointer-events:none; opacity:.6;
 }
 
-/* ── PERIOD STRIP (mobilni quick-jump) ───────────────────── */
-.period-strip {
-  display: none; /* skriveno na desktopu */
-  position: absolute; bottom: 0; left: 0; right: 0;
-  align-items: center; justify-content: center;
-  gap: 4px; padding: 5px 10px;
-  background: linear-gradient(0deg, rgba(5,6,15,.95) 0%, rgba(5,6,15,.7) 100%);
-  border-top: 1px solid rgba(0,212,255,.12);
-  z-index: 8;
+/* ── PERIOD SCAN-LINE ─────────────────────────────────────── */
+.period-scan {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 20%, var(--magic) 50%, var(--accent) 80%, transparent 100%);
+  box-shadow: 0 0 8px var(--accent), 0 0 20px var(--magic);
+  pointer-events: none; z-index: 6; opacity: 0;
 }
-.period-label {
-  font-size: 9px; color: var(--text-muted); letter-spacing: .08em;
-  flex-shrink: 0; margin-right: 2px;
+.period-scan.flash {
+  animation: period-scan-flash 0.9s ease-out forwards;
 }
-.period-btn {
-  width: 30px; height: 30px; border-radius: 8px;
-  border: 1px solid rgba(0,212,255,.2);
-  background: rgba(0,212,255,.06);
-  color: var(--text-muted); font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all .18s; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
+@keyframes period-scan-flash {
+  0%   { opacity: 0; transform: scaleX(0.3); }
+  15%  { opacity: 1; transform: scaleX(1); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
 }
-.period-btn:active,
-.period-btn.active {
-  background: rgba(0,212,255,.22);
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 0 0 10px rgba(0,212,255,.4);
-  transform: scale(1.15);
+
+/* ── MOBILE SEARCH BUTTON (topbar) ───────────────────────── */
+.btn-search-mobile {
+  display: none;
+  padding: 7px 10px; background: rgba(0,212,255,.08);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); cursor: pointer; font-size: 16px;
+  transition: all .18s; flex-shrink: 0;
 }
+.btn-search-mobile:active { background: rgba(0,212,255,.2); }
+
+/* ── MOBILE SEARCH OVERLAY ────────────────────────────────── */
+.search-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 10050;
+  background: rgba(5,6,15,.92);
+  backdrop-filter: blur(12px);
+  align-items: flex-start; justify-content: center;
+  padding-top: 24px;
+}
+.search-overlay.active { display: flex; }
+.search-overlay-inner {
+  display: flex; align-items: center; gap: 10px;
+  width: calc(100% - 32px); max-width: 480px;
+  background: rgba(10,13,31,.98);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px; padding: 12px 14px;
+  box-shadow: 0 0 40px rgba(0,212,255,.15), 0 8px 32px rgba(0,0,0,.6);
+}
+.search-overlay-icon { font-size: 18px; flex-shrink: 0; }
+#search-overlay-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-size: 16px;
+  font-family: 'Sora', system-ui, sans-serif;
+}
+#search-overlay-input::placeholder { color: var(--text-muted); }
+.search-overlay-close {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px; color: var(--text-muted); padding: 5px 10px;
+  font-size: 14px; cursor: pointer; flex-shrink: 0; transition: all .15s;
+}
+.search-overlay-close:active { background: rgba(255,255,255,.18); }
 
 /* ── DESNI PANEL ──────────────────────────────────────────── */
 .right-panel {
@@ -703,67 +757,141 @@ html, body {
   font-size:10px; color:var(--text-muted); text-align:center;
 }
 
+/* ── ONBOARDING OVERLAY ───────────────────────────────────── */
+.onboarding-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 10200;
+}
+.onboarding-overlay.active { display: block; }
+.onboarding-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(6px);
+}
+.onboarding-card {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, #111428 0%, #0a0d1f 100%);
+  border-top: 1px solid rgba(0,212,255,.4);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 24px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  transform: translateY(100%);
+  animation: onboarding-slide-up 0.45s cubic-bezier(0.34, 1.15, 0.64, 1) forwards;
+}
+@keyframes onboarding-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.onboarding-title {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  text-align: center; margin-bottom: 20px;
+  letter-spacing: .01em;
+}
+.onboarding-title strong {
+  background: linear-gradient(135deg, var(--accent), var(--magic));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.onboarding-steps {
+  display: flex; gap: 12px; margin-bottom: 20px;
+}
+.onboarding-step {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 14px 10px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  animation: onboarding-step-appear 0.4s ease-out both;
+}
+@keyframes onboarding-step-appear {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.onboarding-icon {
+  font-size: 26px; line-height: 1;
+}
+.onboarding-text {
+  font-size: 11px; text-align: center; color: var(--text-muted);
+  line-height: 1.5;
+}
+.onboarding-text strong { color: var(--text); display: block; font-size: 12px; }
+.onboarding-text small  { font-size: 10px; }
+.onboarding-btn {
+  display: block; width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--accent), #0099cc);
+  border: none; color: #001020; font-weight: 700;
+  font-size: 14px; border-radius: 12px; cursor: pointer;
+  font-family: 'Sora', system-ui, sans-serif;
+  letter-spacing: .02em;
+  transition: transform .12s, box-shadow .18s;
+}
+.onboarding-btn:active { transform: scale(.98); box-shadow: 0 4px 20px rgba(0,212,255,.5); }
+
 /* ═══════════════════════════════════════════════════════════
    MOBILNI DIZAJN (≤ 900px)
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
 
-  /* App grid dobiva redak za category pills */
+  /* App grid: topbar | control-rail | main (bez footera) */
   .app {
     grid-template-rows: auto auto 1fr;
-    /* topbar | pills | main — footer skriven */
   }
   .footer { display: none; }
 
-  /* Category pills vidljive */
-  .category-pills { display: flex; }
+  /* Control rail vidljiv */
+  .control-rail { display: flex; }
 
-  /* Main: flex kolona umjesto grid stupca */
+  /* Main: flex kolona, canvas uzima sve */
   .main {
     display: flex;
     flex-direction: column;
     grid-template-columns: unset;
     overflow: hidden;
+    position: relative;
   }
 
-  /* Canvas zauzima sav preostali prostor */
+  /* Canvas zauzima cijeli dostupni prostor */
   .canvas-wrap {
     flex: 1; min-height: 0;
+    padding-bottom: 64px; /* prostor za mini komoru uvijek */
   }
 
-  /* Period strip vidljiv */
-  .period-strip { display: flex; }
-
-  /* Hint hint sakriven (touchscreen) */
+  /* Hint skriven (touchscreen nema hover) */
   .canvas-hint { display: none; }
 
   /* Hover tooltip — manji na mobu */
   .hover-tooltip { top: 8px; left: 8px; font-size: 12px; padding: 5px 10px; }
 
-  /* ── DESNI PANEL → postaje komora na dnu ── */
+  /* ── DESNI PANEL → FIKSNI BOTTOM SHEET ── */
   .right-panel {
-    flex-shrink: 0;
-    flex-direction: column;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 90vh;
+    /* JS postavlja transform: translateY(Xpx) za snap */
+    transform: translateY(calc(90vh - 46vw)); /* standard default */
+    transition: transform 0.32s cubic-bezier(0.34, 1.15, 0.64, 1);
+    overflow: hidden;
+    z-index: 50;
     border-left: none;
     border-top: 2px solid rgba(168,85,247,.5);
-    height: 46vw;
-    min-height: 80px;
-    transition: height 0.32s cubic-bezier(0.34, 1.15, 0.64, 1);
-    overflow: hidden;
+    border-radius: 0;
+    /* Senka prema gore daje dubinu */
+    box-shadow: 0 -8px 40px rgba(168,85,247,.18), 0 -2px 12px rgba(0,0,0,.5);
   }
 
-  /* Chamber stanja */
-  .right-panel.chamber-mini     { height: 80px; }
-  .right-panel.chamber-standard { height: 46vw; }
-  .right-panel.chamber-full     { height: 78vh; }
+  /* CSS klase za stanje — JS ih postavlja, ali ih zadržavamo za referencu */
+  .right-panel.chamber-mini     { /* transform postavlja JS */ }
+  .right-panel.chamber-standard { /* transform postavlja JS */ }
+  .right-panel.chamber-full     { /* transform postavlja JS */ }
 
   /* Info panel skriven — zamijenjen action sheetom */
   .info-panel { display: none; }
 
-  /* Cube wrapper pun visinom panela, bez 3D efekta stranica */
+  /* Cube wrapper pun visinom panela */
   .cube-wrapper {
     flex: 1; min-height: 0;
-    padding-top: 28px;   /* visina handlea */
+    padding-top: 28px;
     padding-right: 0;
   }
   .cube-face-top {
@@ -782,24 +910,35 @@ html, body {
   /* Chamber handle vidljiv */
   .chamber-handle { display: flex; }
 
-  /* Topbar kompaktniji */
+  /* Topbar kompaktniji: pretraga se skriva, pojavljuje se ikona */
   .topbar { padding: 8px 12px; }
-  #search  { flex: 1; min-width: 80px; width: auto; }
+  #search  { display: none; } /* zamijenjeno overlay-em */
+  .btn-search-mobile { display: inline-flex; align-items: center; }
   .btn-label { display: none; }
 
-  /* Message bar iznad komore */
-  .message-bar { bottom: auto; top: 16px; }
+  /* Message bar — iznad komore (jer je fiksna) */
+  .message-bar { bottom: auto; top: 16px; z-index: 51; }
 }
+
+/* ── MOBILNI SEARCH OVERLAY — aktivira JS toggle ─────────── */
+/* Prikazuje se nad svime, upravljano JS-om */
 
 /* Manji telefoni */
 @media (max-width: 480px) {
   .brand-text { font-size: 13px; }
   .brand-icon  { font-size: 18px; }
-  #search      { max-width: 110px; }
-
-  .right-panel.chamber-standard { height: 52vw; }
 
   .as-sym  { font-size: 34px; }
   .as-name { font-size: 15px; }
   .as-actions { grid-template-columns: 1fr; }
+
+  .onboarding-steps { gap: 8px; }
+  .onboarding-step  { padding: 12px 6px; }
+  .onboarding-icon  { font-size: 22px; }
+}
+
+/* Jako mali ekrani (≤ 360px) */
+@media (max-width: 360px) {
+  .brand-text { display: none; }
+  .brand-icon { font-size: 22px; }
 }
