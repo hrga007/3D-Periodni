@@ -60,11 +60,15 @@ function init() {
   renderer.setSize(w, h, false);
   renderer.outputEncoding = THREE.sRGBEncoding;
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-  addDirLight(scene, 0xffffff, 0.8, 8, 12, 10);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  addDirLight(scene, 0xffffff, 0.9, 8, 12, 10);
+  addDirLight(scene, 0xc0a8ff, 0.4, -10, -8, 6); // rim light za glass
   addPointLight(scene, 0x00d4ff, 1.4, 60, 0, 0, 10);
   addPointLight(scene, 0xff6090, 0.8, 60, -12, -5, 5);
   addPointLight(scene, 0xffffff, 0.5, 50, 15, 10, 8);
+
+  // Environment map za staklene refleksije
+  scene.environment = createGradientEnvMap();
 
   addStars();
 
@@ -197,65 +201,165 @@ function setChamberLabel(formula, name) {
 }
 
 // =============================================================
-// CARD TEXTURE
+// GLASS GEOMETRY — zaobljeni ekstrudirani box (smooth silueta)
 // =============================================================
-function makeCardTexture(el) {
+let _sharedGlassGeo = null;
+function getGlassGeometry() {
+  if (_sharedGlassGeo) return _sharedGlassGeo;
+  const w = CARD_SIZE, h = CARD_SIZE, d = 0.18, r = 0.18;
+  const shape = new THREE.Shape();
+  const x = -w / 2, y = -h / 2;
+  shape.moveTo(x + r, y);
+  shape.lineTo(x + w - r, y);
+  shape.quadraticCurveTo(x + w, y, x + w, y + r);
+  shape.lineTo(x + w, y + h - r);
+  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  shape.lineTo(x + r, y + h);
+  shape.quadraticCurveTo(x, y + h, x, y + h - r);
+  shape.lineTo(x, y + r);
+  shape.quadraticCurveTo(x, y, x + r, y);
+
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: d,
+    bevelEnabled: true,
+    bevelThickness: 0.025,
+    bevelSize: 0.025,
+    bevelSegments: 4,
+    curveSegments: 10
+  });
+  geo.translate(0, 0, -d / 2 - 0.025); // centar na Z osi
+  _sharedGlassGeo = geo;
+  return geo;
+}
+
+// =============================================================
+// GLASS MATERIAL — MeshPhysicalMaterial po elementu (lagano obojano)
+// =============================================================
+function makeGlassMaterial(catKey) {
+  const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
+  // Lagani tint: bijela + 50% kategorije
+  const tinted = new THREE.Color(cat.color).lerp(new THREE.Color(0xffffff), 0.5);
+  return new THREE.MeshPhysicalMaterial({
+    color: tinted,
+    transparent: true,
+    opacity: 0.42,
+    roughness: 0.14,
+    metalness: 0.02,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.08,
+    side: THREE.DoubleSide,
+    depthWrite: true,
+    envMapIntensity: 1.1
+  });
+}
+
+// =============================================================
+// ENVIRONMENT MAP — gradijent za glass refleksije
+// =============================================================
+function createGradientEnvMap() {
   const cv = document.createElement('canvas');
-  cv.width = 256; cv.height = 256;
+  cv.width = 512; cv.height = 256;
   const ctx = cv.getContext('2d');
-
-  const cat = window.CATEGORIES[el.cat] || window.CATEGORIES.nonmetal;
-  const r = (cat.color >> 16) & 255, g = (cat.color >> 8) & 255, b = cat.color & 255;
-  const li = v => Math.min(255, Math.round(v + (255 - v) * 0.28));
-  const dk = v => Math.max(0, Math.round(v * 0.75));
-
-  // === Pozadina: flat pastelna s blagim gradijentom ===
-  const bg = ctx.createLinearGradient(0, 8, 0, 248);
-  bg.addColorStop(0,   `rgb(${li(r)},${li(g)},${li(b)})`);
-  bg.addColorStop(0.5, `rgb(${r},${g},${b})`);
-  bg.addColorStop(1,   `rgb(${dk(r)},${dk(g)},${dk(b)})`);
-  roundRect(ctx, 8, 8, 240, 240, 22);
-  ctx.fillStyle = bg; ctx.fill();
-
-  // === Gornji sjaj (stakleni efekt) ===
-  const shine = ctx.createLinearGradient(0, 8, 0, 148);
-  shine.addColorStop(0, 'rgba(255,255,255,0.22)');
-  shine.addColorStop(1, 'rgba(255,255,255,0)');
-  roundRect(ctx, 8, 8, 240, 240, 22);
-  ctx.fillStyle = shine; ctx.fill();
-
-  // === Rub: bijeli, poluproziran ===
-  ctx.strokeStyle = 'rgba(255,255,255,0.30)';
-  ctx.lineWidth = 2.5;
-  roundRect(ctx, 8, 8, 240, 240, 22);
-  ctx.stroke();
-
-  // === Atomski broj — gore lijevo ===
-  ctx.font = 'bold 22px "Segoe UI",Arial,sans-serif';
-  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  ctx.fillStyle = 'rgba(255,255,255,0.88)';
-  ctx.fillText(el.n.toString(), 18, 18);
-
-  // === Simbol — veliko, centrirano ===
-  ctx.font = 'bold 92px "Segoe UI",Arial,sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(el.s, 128, 128);
-
-  // === Naziv — ispod simbola ===
-  const nSz = el.name.length > 9 ? 14 : el.name.length > 6 ? 17 : 19;
-  ctx.font = `600 ${nSz}px "Segoe UI",Arial,sans-serif`;
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = 'rgba(255,255,255,0.93)';
-  ctx.fillText(el.name, 128, 194);
-
-  // === Atomska masa — dno ===
-  ctx.font = '400 14px "Segoe UI",Arial,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.62)';
-  ctx.fillText(el.m.toString(), 128, 220);
+  const grad = ctx.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0,    '#1a3a6b');  // top: dubinsko plava
+  grad.addColorStop(0.45, '#3a1f5e');  // mid: ljubičasta
+  grad.addColorStop(0.55, '#2d1850');
+  grad.addColorStop(1,    '#06081a');  // dno: tamno
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 256);
+  // Dodatni "highlight" lijevo — fake zvjezdana svjetlost
+  const hl = ctx.createRadialGradient(120, 60, 0, 120, 60, 90);
+  hl.addColorStop(0, 'rgba(150,200,255,0.55)');
+  hl.addColorStop(1, 'rgba(150,200,255,0)');
+  ctx.fillStyle = hl; ctx.fillRect(0, 0, 512, 256);
+  // Drugi highlight desno (ljubičasti)
+  const hl2 = ctx.createRadialGradient(380, 80, 0, 380, 80, 70);
+  hl2.addColorStop(0, 'rgba(220,150,255,0.4)');
+  hl2.addColorStop(1, 'rgba(220,150,255,0)');
+  ctx.fillStyle = hl2; ctx.fillRect(0, 0, 512, 256);
 
   const tex = new THREE.CanvasTexture(cv);
-  tex.encoding = THREE.sRGBEncoding; return tex;
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+// =============================================================
+// TEXT OVERLAY — transparent canvas, samo tekst
+// =============================================================
+function makeTextOverlayTexture(el) {
+  const cv = document.createElement('canvas');
+  cv.width = 512; cv.height = 512;
+  const ctx = cv.getContext('2d');
+  // Transparent background
+  ctx.clearRect(0, 0, 512, 512);
+
+  // Mali drop shadow za čitljivost preko stakla
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 2;
+
+  // === Atomski broj — gore lijevo (mono) ===
+  ctx.font = '500 42px "JetBrains Mono", "Consolas", monospace';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText(el.n.toString(), 38, 38);
+
+  // === Simbol — veliko, centrirano ===
+  ctx.shadowBlur = 10;
+  ctx.font = '700 200px "Sora", "Segoe UI", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(el.s, 256, 256);
+
+  // === Naziv — ispod simbola ===
+  ctx.shadowBlur = 5;
+  const nSz = el.name.length > 9 ? 30 : el.name.length > 6 ? 36 : 40;
+  ctx.font = `600 ${nSz}px "Sora", "Segoe UI", sans-serif`;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.fillText(el.name, 256, 410);
+
+  // === Atomska masa — dno (mono) ===
+  ctx.shadowBlur = 4;
+  ctx.font = '400 28px "JetBrains Mono", "Consolas", monospace';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fillText(el.m.toString(), 256, 462);
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.encoding = THREE.sRGBEncoding;
+  tex.anisotropy = 8;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function makeTextMesh(el) {
+  const tex = makeTextOverlayTexture(el);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true,
+    depthWrite: false, depthTest: true,
+    side: THREE.FrontSide
+  });
+  const geo = new THREE.PlaneGeometry(CARD_SIZE * 0.96, CARD_SIZE * 0.96);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.z = 0.115; // ispred staklene plohe
+  return mesh;
+}
+
+// =============================================================
+// CARD DIM HELPER — koristi se u filter funkcijama
+// =============================================================
+function setCardDim(card, dimmed) {
+  const glass = card.material;
+  const text = card.userData.textMat;
+  if (glass) {
+    glass.opacity = dimmed ? 0.06 : 0.42;
+    glass.transparent = true;
+  }
+  if (text) {
+    text.opacity = dimmed ? 0.12 : 1.0;
+  }
 }
 
 function roundRect(ctx,x,y,w,h,r) {
@@ -274,34 +378,32 @@ function shade(hex, lum) {
 }
 
 // =============================================================
-// BUILD TABLE
+// BUILD TABLE — staklene kartice s tekstom kao zasebnim slojem
 // =============================================================
 function buildTable() {
   const grp = new THREE.Group(); grp.name = 'tableGroup';
+  const glassGeo = getGlassGeometry();
+
   window.ELEMENTS.forEach(el => {
-    const tex = makeCardTexture(el);
-    const cat = window.CATEGORIES[el.cat];
-    const edgeCol = new THREE.Color(cat.color).multiplyScalar(0.55);
-    const card = new THREE.Mesh(
-      new THREE.BoxGeometry(CARD_SIZE, CARD_SIZE, 0.12),
-      [
-        new THREE.MeshBasicMaterial({ color: edgeCol }),
-        new THREE.MeshBasicMaterial({ color: edgeCol }),
-        new THREE.MeshBasicMaterial({ color: edgeCol }),
-        new THREE.MeshBasicMaterial({ color: edgeCol }),
-        new THREE.MeshBasicMaterial({ map: tex }),
-        new THREE.MeshBasicMaterial({ color: 0x0d0f22 })
-      ]
-    );
+    const glassMat = makeGlassMaterial(el.cat);
+    const card = new THREE.Mesh(glassGeo, glassMat);
+
+    // Tekst kao child — automatski prati transformacije roditelja (hover, drag)
+    const textMesh = makeTextMesh(el);
+    card.add(textMesh);
+
     const x = (el.col - 9.5) * SPACING;
     let   y = -(el.row - 4.5) * SPACING;
     if (el.row === 9)  y -= 0.6;
     if (el.row === 10) y -= 0.6;
     card.position.set(x, y, 0);
-    card.userData.element = el; card.userData.isCard = true;
-    card.userData.basePos = card.position.clone();
-    card.rotation.y = 0;
-    card.rotation.x = 0;
+
+    card.userData.element  = el;
+    card.userData.isCard   = true;
+    card.userData.basePos  = card.position.clone();
+    card.userData.textMat  = textMesh.material;
+    card.userData.textMesh = textMesh;
+
     grp.add(card);
   });
   scene.add(grp); currentObject = grp;
@@ -893,16 +995,12 @@ window.jumpToPeriod = function(p) {
     currentObject.children.forEach(card => {
       if (!card.userData.isCard) return;
       const inPeriod = card.userData.element?.per === p;
-      if (card.material[4]) {
-        card.material[4].opacity = inPeriod ? 1 : 0.22;
-        card.material[4].transparent = !inPeriod;
-      }
+      setCardDim(card, !inPeriod);
     });
     setTimeout(() => {
       currentObject.children.forEach(card => {
-        if (!card.userData.isCard || !card.material[4]) return;
-        card.material[4].opacity = 1;
-        card.material[4].transparent = false;
+        if (!card.userData.isCard) return;
+        setCardDim(card, false);
       });
     }, 1200);
   }
@@ -946,10 +1044,7 @@ function applyCardFilter() {
   currentObject.children.forEach(card => {
     if (!card.userData.isCard) return;
     const match = !activeCategory || card.userData.element.cat === activeCategory;
-    if (card.material[4]) {
-      card.material[4].opacity = match ? 1 : 0.1;
-      card.material[4].transparent = !match;
-    }
+    setCardDim(card, !match);
     card.scale.setScalar(match ? 1 : 0.9);
   });
 }
@@ -1263,7 +1358,7 @@ function updateElementGlowFilter() {
     // Mixer prazan → vrati sve na normalno
     currentObject.children.forEach(card => {
       if (!card.userData.isCard) return;
-      if (card.material[4]) { card.material[4].opacity = 1; card.material[4].transparent = false; }
+      setCardDim(card, false);
       card.scale.setScalar(1);
     });
     return;
@@ -1274,10 +1369,9 @@ function updateElementGlowFilter() {
 
   currentObject.children.forEach(card => {
     if (!card.userData.isCard) return;
-    const sym  = card.userData.element.s;
-    const can  = canElementContribute(sym, mixerCounts);
-    const mat  = card.material[4];
-    if (mat) { mat.opacity = can ? 1 : 0.14; mat.transparent = !can; }
+    const sym = card.userData.element.s;
+    const can = canElementContribute(sym, mixerCounts);
+    setCardDim(card, !can);
     card.scale.setScalar(can ? 1 : 0.88);
   });
 }
@@ -1520,7 +1614,7 @@ function applySearchFilter(q) {
     if (!card.userData.isCard) return;
     const el = card.userData.element;
     const match = !q || el.s.toLowerCase().includes(q) || el.name.toLowerCase().includes(q) || String(el.n) === q;
-    card.material.forEach((m, i) => { if (i === 4) { m.opacity = match ? 1 : .11; m.transparent = !match; } });
+    setCardDim(card, !match);
     card.scale.setScalar(match ? 1 : .92);
   });
 }
@@ -1653,5 +1747,7 @@ window.addEventListener('load', ()=>{
     document.getElementById('loading').textContent='Greška: Three.js se ne učitava.';
     return;
   }
-  init();
+  // Pričekaj Google Fonts prije buildanja teksture (Sora + JetBrains Mono)
+  const ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  ready.then(init).catch(() => init());
 });
