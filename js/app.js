@@ -233,27 +233,24 @@ function getGlassGeometry() {
 }
 
 // =============================================================
-// GLASS MATERIAL — MeshPhysicalMaterial po elementu (lagano obojano)
+// GLASS MATERIAL — pravi prozirni kristal s tintom kategorije
 // =============================================================
 function makeGlassMaterial(catKey) {
   const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
-  // Snažan tint: zadržavamo 85% kategorije, samo 15% bijele za soft staklen ton
-  const tinted = new THREE.Color(cat.color).lerp(new THREE.Color(0xffffff), 0.15);
-  // Emissive za dodatnu dubinu boje (low intensity, ne sjaji previše)
-  const emis = new THREE.Color(cat.color).multiplyScalar(0.35);
+  // Lagani tint: zadržavamo 75% kategorije za bojanu prozirnost
+  const tinted = new THREE.Color(cat.color).lerp(new THREE.Color(0xffffff), 0.25);
   return new THREE.MeshPhysicalMaterial({
     color: tinted,
-    emissive: emis,
-    emissiveIntensity: 0.6,
     transparent: true,
-    opacity: 0.78,
-    roughness: 0.18,
-    metalness: 0.05,
+    opacity: 0.32,         // pravi crystal — vidi se kroz njega
+    roughness: 0.05,       // vrlo glatko, jako reflektivno
+    metalness: 0.0,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.1,
+    clearcoatRoughness: 0.04,
     side: THREE.DoubleSide,
     depthWrite: true,
-    envMapIntensity: 0.8
+    envMapIntensity: 1.4,  // pojačane refleksije iz env mape
+    ior: 1.45              // pravi indeks loma stakla
   });
 }
 
@@ -288,52 +285,79 @@ function createGradientEnvMap() {
 }
 
 // =============================================================
-// TEXT OVERLAY — transparent canvas, samo tekst
+// TEXT OVERLAY — embossed/etched stil (4 sloja: shadow, stroke, highlight, fill)
+// Tekst izgleda kao izrezbaren u staklu (3D bevel)
 // =============================================================
 function makeTextOverlayTexture(el) {
   const cv = document.createElement('canvas');
   cv.width = 512; cv.height = 512;
   const ctx = cv.getContext('2d');
-  // Transparent background
   ctx.clearRect(0, 0, 512, 512);
 
-  // Mali drop shadow za čitljivost preko stakla
-  ctx.shadowColor = 'rgba(0,0,0,0.55)';
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 2;
+  // Helper: 4-slojni embossed tekst
+  function drawEmbossed(text, x, y, fontStr, opts) {
+    const o = Object.assign({ shadowOffset: 4, strokeWidth: 5, mainAlpha: 0.97, hiAlpha: 0.45 }, opts || {});
+    ctx.font = fontStr;
 
-  // === Atomski broj — gore lijevo (mono) ===
-  ctx.font = '500 42px "JetBrains Mono", "Consolas", monospace';
+    // 1. Duboka sjenka (kao da se tekst utisnut u staklo)
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur  = o.shadowOffset * 1.2;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = o.shadowOffset;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillText(text, x, y);
+
+    // Reset sjenke za ostale slojeve
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur  = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    // 2. Tamni outline (definira slova)
+    ctx.lineJoin   = 'round';
+    ctx.miterLimit = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth   = o.strokeWidth;
+    ctx.strokeText(text, x, y);
+
+    // 3. Gornji highlight (kao da svjetlo udara na izdignuti rub)
+    ctx.fillStyle = `rgba(255,255,255,${o.hiAlpha})`;
+    ctx.fillText(text, x, y - 1.2);
+
+    // 4. Glavni fill (čisto bijela)
+    ctx.fillStyle = `rgba(255,255,255,${o.mainAlpha})`;
+    ctx.fillText(text, x, y);
+  }
+
+  // === Atomski broj — gore lijevo ===
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.fillText(el.n.toString(), 38, 38);
+  drawEmbossed(el.n.toString(), 38, 38,
+    '500 44px "JetBrains Mono", "Consolas", monospace',
+    { shadowOffset: 2, strokeWidth: 3, mainAlpha: 0.92, hiAlpha: 0.35 });
 
   // === Simbol — veliko, centrirano ===
-  ctx.shadowBlur = 10;
-  ctx.font = '700 200px "Sora", "Segoe UI", sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(el.s, 256, 256);
+  drawEmbossed(el.s, 256, 256,
+    '700 210px "Sora", "Segoe UI", sans-serif',
+    { shadowOffset: 7, strokeWidth: 7, mainAlpha: 0.98, hiAlpha: 0.5 });
 
   // === Naziv — ispod simbola ===
-  ctx.shadowBlur = 5;
-  const nSz = el.name.length > 9 ? 30 : el.name.length > 6 ? 36 : 40;
-  ctx.font = `600 ${nSz}px "Sora", "Segoe UI", sans-serif`;
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.fillText(el.name, 256, 410);
+  const nSz = el.name.length > 9 ? 32 : el.name.length > 6 ? 38 : 42;
+  drawEmbossed(el.name, 256, 410,
+    `600 ${nSz}px "Sora", "Segoe UI", sans-serif`,
+    { shadowOffset: 3, strokeWidth: 4, mainAlpha: 0.95, hiAlpha: 0.4 });
 
-  // === Atomska masa — dno (mono) ===
-  ctx.shadowBlur = 4;
-  ctx.font = '400 28px "JetBrains Mono", "Consolas", monospace';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.fillText(el.m.toString(), 256, 462);
+  // === Atomska masa — dno ===
+  drawEmbossed(el.m.toString(), 256, 466,
+    '400 28px "JetBrains Mono", "Consolas", monospace',
+    { shadowOffset: 2, strokeWidth: 2, mainAlpha: 0.78, hiAlpha: 0.3 });
 
   const tex = new THREE.CanvasTexture(cv);
-  tex.encoding = THREE.sRGBEncoding;
+  tex.encoding   = THREE.sRGBEncoding;
   tex.anisotropy = 8;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
-  tex.magFilter = THREE.LinearFilter;
+  tex.minFilter  = THREE.LinearMipmapLinearFilter;
+  tex.magFilter  = THREE.LinearFilter;
   tex.needsUpdate = true;
   return tex;
 }
@@ -358,7 +382,7 @@ function setCardDim(card, dimmed) {
   const glass = card.material;
   const text = card.userData.textMat;
   if (glass) {
-    glass.opacity = dimmed ? 0.08 : 0.78;
+    glass.opacity = dimmed ? 0.05 : 0.32;
     glass.transparent = true;
   }
   if (text) {
@@ -1543,6 +1567,33 @@ function updateInfoPanelAtom(el) {
   const cat=window.CATEGORIES[el.cat];
   const color='#'+cat.color.toString(16).padStart(6,'0');
   const shells=window.getBohrShells(el.n);
+
+  // Mogući spojevi (isto kao u mobile action sheet)
+  const hints = getDragHints(el.s);
+  let hintsHtml = '';
+  if (hints.length > 0) {
+    const rows = hints.slice(0, 5).map(h => {
+      const missingStr = Object.entries(h.missing)
+        .map(([s,n]) => n>1 ? `${n}× ${s}` : s).join(' + ');
+      const isReady    = h.totalMissing === 0;
+      const tappable   = !isReady && h.totalMissing <= 3;
+      const missingJson = JSON.stringify(h.missing).replace(/"/g, '&quot;');
+      const escapedFormula = h.compound.formula.replace(/'/g, "\\'");
+      const badge = isReady
+        ? `<span class="hint-badge match">✓</span>`
+        : `<span class="hint-badge missing">+ ${missingStr}</span>`;
+      const onclickAttr = isReady
+        ? `showCompoundByFormula('${escapedFormula}','${el.s}')`
+        : tappable ? `addMissingFromHint('${missingJson}','${el.s}')` : '';
+      return `<div class="ip-hint-row${onclickAttr ? ' tappable' : ''}" onclick="${onclickAttr}">
+        <span class="ip-hint-formula" style="color:${color}">${h.compound.formula}</span>
+        <span class="ip-hint-name">${h.compound.name}</span>
+        ${badge}
+      </div>`;
+    }).join('');
+    hintsHtml = `<div class="info-block"><label>Mogući spojevi</label><div class="ip-hints">${rows}</div></div>`;
+  }
+
   panel.innerHTML=`
     <div class="info-header" style="border-color:${color}">
       <div class="el-symbol-big" style="background:${color}22;border-color:${color}">
@@ -1560,6 +1611,7 @@ function updateInfoPanelAtom(el) {
     <div class="info-block"><label>Ljuske (Bohr)</label><code>${shells.join(' · ')}</code></div>
     <div class="info-block"><label>Otkriće</label><p>${el.disc}</p></div>
     <div class="info-block"><label>Primjena</label><p>${el.use}</p></div>
+    ${hintsHtml}
     <div class="info-actions">
       <button onclick="addToMixer('${el.s}')">✦ Dodaj u komoru</button>
       <button onclick="clearChamber()" class="secondary">← Natrag</button>

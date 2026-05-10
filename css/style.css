@@ -314,6 +314,30 @@ html, body {
   padding:6px 9px; border-radius:0 5px 5px 0; font-size:12px;
 }
 
+/* Hints u info panelu (mogući spojevi) */
+.ip-hints { display:flex; flex-direction:column; gap:4px; margin-top:4px; }
+.ip-hint-row {
+  display:flex; align-items:center; gap:7px;
+  padding:6px 8px; border-radius:6px;
+  border:1px solid rgba(255,255,255,.05);
+  background:rgba(0,0,0,.18);
+  transition:background .15s, border-color .15s, transform .12s;
+}
+.ip-hint-row.tappable { cursor:pointer; }
+.ip-hint-row.tappable:hover {
+  background:rgba(168,85,247,.12);
+  border-color:rgba(168,85,247,.3);
+  transform:translateX(2px);
+}
+.ip-hint-formula {
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-weight:700; font-size:12px; flex-shrink:0; min-width:42px;
+}
+.ip-hint-name {
+  flex:1; font-size:11px; color:var(--text-muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
 .info-actions { display:flex; flex-direction:column; gap:6px; margin-top:12px; }
 .info-actions button {
   padding:8px 12px;
