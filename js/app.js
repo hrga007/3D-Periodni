@@ -59,6 +59,8 @@ function init() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(w, h, false);
   renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.25;
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
   addDirLight(scene, 0xffffff, 0.9, 8, 12, 10);
@@ -233,50 +235,72 @@ function getGlassGeometry() {
 }
 
 // =============================================================
-// GLASS MATERIAL — pravi prozirni kristal s tintom kategorije
+// GLASS MATERIAL — vibrant neon iridescent crystal
+// Pune boje, jaki emissive glow, oštri clearcoat
 // =============================================================
 function makeGlassMaterial(catKey) {
   const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
-  // Lagani tint: zadržavamo 75% kategorije za bojanu prozirnost
-  const tinted = new THREE.Color(cat.color).lerp(new THREE.Color(0xffffff), 0.25);
+  const fullColor = new THREE.Color(cat.color);
+  // Boost saturacije: u HSL prostoru
+  const hsl = { h:0, s:0, l:0 }; fullColor.getHSL(hsl);
+  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.3), Math.min(0.65, hsl.l * 1.1));
+
   return new THREE.MeshPhysicalMaterial({
-    color: tinted,
+    color: fullColor,
+    emissive: fullColor.clone().multiplyScalar(0.85),
+    emissiveIntensity: 0.55,    // unutarnji neon glow
     transparent: true,
-    opacity: 0.32,         // pravi crystal — vidi se kroz njega
-    roughness: 0.05,       // vrlo glatko, jako reflektivno
+    opacity: 0.55,              // dovoljno da boja udari, ali još uvijek prozirno
+    roughness: 0.02,            // mirror-smooth
     metalness: 0.0,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.04,
+    clearcoatRoughness: 0.02,   // britki highlight rubovi
     side: THREE.DoubleSide,
     depthWrite: true,
-    envMapIntensity: 1.4,  // pojačane refleksije iz env mape
-    ior: 1.45              // pravi indeks loma stakla
+    envMapIntensity: 2.2,       // jake refleksije iz neon env mape
+    ior: 1.5,
+    reflectivity: 0.55
   });
 }
 
 // =============================================================
-// ENVIRONMENT MAP — gradijent za glass refleksije
+// ENVIRONMENT MAP — vibrant neon gradient (iridescent reflections)
 // =============================================================
 function createGradientEnvMap() {
   const cv = document.createElement('canvas');
-  cv.width = 512; cv.height = 256;
+  cv.width = 1024; cv.height = 512;
   const ctx = cv.getContext('2d');
-  const grad = ctx.createLinearGradient(0, 0, 0, 256);
-  grad.addColorStop(0,    '#1a3a6b');  // top: dubinsko plava
-  grad.addColorStop(0.45, '#3a1f5e');  // mid: ljubičasta
-  grad.addColorStop(0.55, '#2d1850');
-  grad.addColorStop(1,    '#06081a');  // dno: tamno
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 256);
-  // Dodatni "highlight" lijevo — fake zvjezdana svjetlost
-  const hl = ctx.createRadialGradient(120, 60, 0, 120, 60, 90);
-  hl.addColorStop(0, 'rgba(150,200,255,0.55)');
-  hl.addColorStop(1, 'rgba(150,200,255,0)');
-  ctx.fillStyle = hl; ctx.fillRect(0, 0, 512, 256);
-  // Drugi highlight desno (ljubičasti)
-  const hl2 = ctx.createRadialGradient(380, 80, 0, 380, 80, 70);
-  hl2.addColorStop(0, 'rgba(220,150,255,0.4)');
-  hl2.addColorStop(1, 'rgba(220,150,255,0)');
-  ctx.fillStyle = hl2; ctx.fillRect(0, 0, 512, 256);
+
+  // Tamna baza (crna) — tako da neonske mrlje sjaje na crnom
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Neonske svjetiljke razbacane oko sfere — odražavaju se kao iridescentni hotspots
+  const lights = [
+    { x:120,  y:90,  r:180, c:'rgba(255, 60,200,0.95)' }, // hot pink
+    { x:380,  y:140, r:160, c:'rgba(0, 230,255,0.90)'  }, // cyan
+    { x:640,  y:80,  r:170, c:'rgba(255,220, 60,0.85)' }, // yellow
+    { x:880,  y:130, r:180, c:'rgba(160, 80,255,0.92)' }, // magenta-violet
+    { x:240,  y:340, r:150, c:'rgba(0, 255,160,0.85)'  }, // neon green
+    { x:520,  y:380, r:180, c:'rgba(255,100,100,0.90)' }, // hot red
+    { x:780,  y:360, r:160, c:'rgba(120,200,255,0.85)' }, // ice blue
+  ];
+  lights.forEach(l => {
+    const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
+    g.addColorStop(0,    l.c);
+    g.addColorStop(0.45, l.c.replace(/,[\d.]+\)$/, ',0.35)'));
+    g.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1024, 512);
+  });
+
+  // Gornja "horizon" linija — daje refleksiji vertikalnu strukturu
+  const hor = ctx.createLinearGradient(0, 220, 0, 280);
+  hor.addColorStop(0, 'rgba(0,0,0,0)');
+  hor.addColorStop(0.5, 'rgba(255,255,255,0.18)');
+  hor.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = hor;
+  ctx.fillRect(0, 220, 1024, 60);
 
   const tex = new THREE.CanvasTexture(cv);
   tex.mapping = THREE.EquirectangularReflectionMapping;
@@ -382,7 +406,8 @@ function setCardDim(card, dimmed) {
   const glass = card.material;
   const text = card.userData.textMat;
   if (glass) {
-    glass.opacity = dimmed ? 0.05 : 0.32;
+    glass.opacity = dimmed ? 0.06 : 0.55;
+    glass.emissiveIntensity = dimmed ? 0.05 : 0.55;
     glass.transparent = true;
   }
   if (text) {
