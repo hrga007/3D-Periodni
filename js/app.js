@@ -247,19 +247,19 @@ function makeGlassMaterial(catKey) {
 
   return new THREE.MeshPhysicalMaterial({
     color: fullColor,
-    emissive: fullColor.clone().multiplyScalar(0.85),
-    emissiveIntensity: 0.55,    // unutarnji neon glow
+    emissive: fullColor.clone().multiplyScalar(0.65),
+    emissiveIntensity: 0.30,    // suptilniji unutarnji glow (tekst sjaji)
     transparent: true,
-    opacity: 0.55,              // dovoljno da boja udari, ali još uvijek prozirno
+    opacity: 0.38,              // staklenije, više providnosti
     roughness: 0.02,            // mirror-smooth
     metalness: 0.0,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.02,   // britki highlight rubovi
+    clearcoatRoughness: 0.015,  // izrazito oštri highlight na rubovima (frame efekt)
     side: THREE.DoubleSide,
     depthWrite: true,
-    envMapIntensity: 2.2,       // jake refleksije iz neon env mape
-    ior: 1.5,
-    reflectivity: 0.55
+    envMapIntensity: 2.6,       // jače refleksije iz neon env mape
+    ior: 1.55,
+    reflectivity: 0.6
   });
 }
 
@@ -309,8 +309,8 @@ function createGradientEnvMap() {
 }
 
 // =============================================================
-// TEXT OVERLAY — embossed/etched stil (4 sloja: shadow, stroke, highlight, fill)
-// Tekst izgleda kao izrezbaren u staklu (3D bevel)
+// TEXT OVERLAY — NEON TUBE stil (slojeviti glow u boji kategorije)
+// Tekst sjaji poput neonskog plinskog svjetla unutar stakla
 // =============================================================
 function makeTextOverlayTexture(el) {
   const cv = document.createElement('canvas');
@@ -318,64 +318,78 @@ function makeTextOverlayTexture(el) {
   const ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, 512, 512);
 
-  // Helper: 4-slojni embossed tekst
-  function drawEmbossed(text, x, y, fontStr, opts) {
-    const o = Object.assign({ shadowOffset: 4, strokeWidth: 5, mainAlpha: 0.97, hiAlpha: 0.45 }, opts || {});
-    ctx.font = fontStr;
+  // Boje: sjajna boja u tonu kategorije + bjelkasta jezgra
+  const cat = window.CATEGORIES[el.cat] || window.CATEGORIES.nonmetal;
+  const glow = new THREE.Color(cat.color);
+  const hsl = { h:0, s:0, l:0 }; glow.getHSL(hsl);
+  glow.setHSL(hsl.h, Math.min(1, hsl.s * 1.15), Math.min(0.78, hsl.l + 0.30));
+  const glowHex = '#' + glow.getHexString();
 
-    // 1. Duboka sjenka (kao da se tekst utisnut u staklo)
-    ctx.shadowColor = 'rgba(0,0,0,0.7)';
-    ctx.shadowBlur  = o.shadowOffset * 1.2;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = o.shadowOffset;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  const core = new THREE.Color(cat.color);
+  core.getHSL(hsl);
+  core.setHSL(hsl.h, Math.min(1, hsl.s * 0.45), 0.96);
+  const coreHex = '#' + core.getHexString();
+
+  // Helper: neon-tube tekst (više slojeva glow + svijetla jezgra)
+  function drawNeon(text, x, y, fontStr, opts) {
+    const o = Object.assign({ outerBlur: 26, midBlur: 12, innerBlur: 4 }, opts || {});
+    ctx.font = fontStr;
+    ctx.lineJoin = 'round';
+
+    // 1. Daleki halo — najveći blur, dvostruko za pojačanje
+    ctx.shadowColor   = glowHex;
+    ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    ctx.shadowBlur    = o.outerBlur;
+    ctx.fillStyle     = glowHex;
+    ctx.fillText(text, x, y);
     ctx.fillText(text, x, y);
 
-    // Reset sjenke za ostale slojeve
+    // 2. Srednji glow
+    ctx.shadowBlur = o.midBlur;
+    ctx.fillStyle  = glowHex;
+    ctx.fillText(text, x, y);
+
+    // 3. Tanki tamni rub za čitljivost protiv staklene boje
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur  = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // 2. Tamni outline (definira slova)
-    ctx.lineJoin   = 'round';
-    ctx.miterLimit = 2;
-    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-    ctx.lineWidth   = o.strokeWidth;
+    ctx.strokeStyle = 'rgba(0,12,28,0.55)';
+    ctx.lineWidth   = 2.2;
     ctx.strokeText(text, x, y);
 
-    // 3. Gornji highlight (kao da svjetlo udara na izdignuti rub)
-    ctx.fillStyle = `rgba(255,255,255,${o.hiAlpha})`;
-    ctx.fillText(text, x, y - 1.2);
-
-    // 4. Glavni fill (čisto bijela)
-    ctx.fillStyle = `rgba(255,255,255,${o.mainAlpha})`;
+    // 4. Sjajna jezgra slova (gotovo bijelo s tonom kategorije)
+    ctx.shadowColor = glowHex;
+    ctx.shadowBlur  = o.innerBlur;
+    ctx.fillStyle   = coreHex;
     ctx.fillText(text, x, y);
+
+    // Reset
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur  = 0;
   }
 
   // === Atomski broj — gore lijevo ===
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  drawEmbossed(el.n.toString(), 38, 38,
-    '500 44px "JetBrains Mono", "Consolas", monospace',
-    { shadowOffset: 2, strokeWidth: 3, mainAlpha: 0.92, hiAlpha: 0.35 });
+  drawNeon(el.n.toString(), 38, 38,
+    '600 48px "JetBrains Mono", "Consolas", monospace',
+    { outerBlur: 18, midBlur: 8, innerBlur: 3 });
 
   // === Simbol — veliko, centrirano ===
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  drawEmbossed(el.s, 256, 256,
-    '700 210px "Sora", "Segoe UI", sans-serif',
-    { shadowOffset: 7, strokeWidth: 7, mainAlpha: 0.98, hiAlpha: 0.5 });
+  drawNeon(el.s, 256, 256,
+    '700 220px "Sora", "Segoe UI", sans-serif',
+    { outerBlur: 42, midBlur: 20, innerBlur: 6 });
 
   // === Naziv — ispod simbola ===
   ctx.textBaseline = 'alphabetic';
-  const nSz = el.name.length > 9 ? 32 : el.name.length > 6 ? 38 : 42;
-  drawEmbossed(el.name, 256, 410,
+  const nSz = el.name.length > 9 ? 32 : el.name.length > 6 ? 38 : 44;
+  drawNeon(el.name, 256, 410,
     `600 ${nSz}px "Sora", "Segoe UI", sans-serif`,
-    { shadowOffset: 3, strokeWidth: 4, mainAlpha: 0.95, hiAlpha: 0.4 });
+    { outerBlur: 24, midBlur: 11, innerBlur: 4 });
 
   // === Atomska masa — dno ===
-  drawEmbossed(el.m.toString(), 256, 466,
-    '400 28px "JetBrains Mono", "Consolas", monospace',
-    { shadowOffset: 2, strokeWidth: 2, mainAlpha: 0.78, hiAlpha: 0.3 });
+  drawNeon(el.m.toString(), 256, 466,
+    '500 30px "JetBrains Mono", "Consolas", monospace',
+    { outerBlur: 16, midBlur: 7, innerBlur: 3 });
 
   const tex = new THREE.CanvasTexture(cv);
   tex.encoding   = THREE.sRGBEncoding;
@@ -406,8 +420,8 @@ function setCardDim(card, dimmed) {
   const glass = card.material;
   const text = card.userData.textMat;
   if (glass) {
-    glass.opacity = dimmed ? 0.06 : 0.55;
-    glass.emissiveIntensity = dimmed ? 0.05 : 0.55;
+    glass.opacity = dimmed ? 0.05 : 0.38;
+    glass.emissiveIntensity = dimmed ? 0.04 : 0.30;
     glass.transparent = true;
   }
   if (text) {
