@@ -243,6 +243,7 @@ function makeGlassMaterial(catKey) {
   const fullColor = new THREE.Color(cat.color);
   // Boost saturacije: u HSL prostoru
   const hsl = { h:0, s:0, l:0 }; fullColor.getHSL(hsl);
+codex/change-periodic-table-to-transparent-look-e86557
   fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.28), Math.min(0.68, hsl.l * 1.05));
 
   return new THREE.MeshPhysicalMaterial({
@@ -264,6 +265,29 @@ function makeGlassMaterial(catKey) {
     envMapIntensity: 2.25,
     ior: 1.48,
     reflectivity: 0.82
+=======
+  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.15), Math.min(0.55, hsl.l * 0.95));
+
+  return new THREE.MeshPhysicalMaterial({
+    color: fullColor,
+    emissive: fullColor.clone().multiplyScalar(0.25),
+    emissiveIntensity: 0.12,    // manje unutarnjeg mliječnog sjaja
+    transparent: true,
+    opacity: 0.22,              // prozirnija sredina kartice
+    roughness: 0.035,
+    metalness: 0.0,
+    transmission: 0.98,         // realniji glass look
+    thickness: 0.48,
+    attenuationDistance: 1.15,
+    attenuationColor: fullColor.clone().lerp(new THREE.Color(0xffffff), 0.52),
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.01,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    envMapIntensity: 1.9,
+    ior: 1.46,
+    reflectivity: 0.78
+main
   });
 }
 
@@ -424,8 +448,13 @@ function setCardDim(card, dimmed) {
   const glass = card.material;
   const text = card.userData.textMat;
   if (glass) {
+codex/change-periodic-table-to-transparent-look-e86557
     glass.opacity = dimmed ? 0.06 : 0.31;
     glass.emissiveIntensity = dimmed ? 0.05 : 0.2;
+=======
+    glass.opacity = dimmed ? 0.04 : 0.22;
+    glass.emissiveIntensity = dimmed ? 0.025 : 0.12;
+main
     glass.transparent = true;
   }
   if (text) {
