@@ -1629,5 +1629,1144 @@ window.COMPOUNDS = [
     bondType:"Ionska (2×NH₄⁺ SO₄²⁻)", geometry:"Dva tetraedra + SO₄",
     description:"Bijela sol, jedno od najvažnijih gnojiva.",
     uses:"Gnojivo (21% N), vatrostalni materijali"
+  },
+
+  // ── Plemeniti plinovi (egzotični/teorijski spojevi) ───────────────────────
+  {
+    formula:"HeH⁺", name:"Helijev hidrid (ion)", ingredients:{He:1, H:1},
+    atoms:[{el:"He", pos:[-0.5,0,0]},{el:"H", pos:[0.5,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (kation)", geometry:"Linearna",
+    description:"Prva molekula u svemiru, otkrivena u svemirskim maglicama 2019.",
+    uses:"Astrokemija, istraživanja"
+  },
+  {
+    formula:"NeH⁺", name:"Neonov hidrid (ion)", ingredients:{Ne:1, H:1},
+    atoms:[{el:"Ne", pos:[-0.5,0,0]},{el:"H", pos:[0.5,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Slaba kovalentna (kation)", geometry:"Linearna",
+    description:"Vrlo nestabilan ion, opažen u masenoj spektrometriji.",
+    uses:"Znanstvena istraživanja"
+  },
+  {
+    formula:"HArF", name:"Argonov fluorohidrid", ingredients:{H:1, Ar:1, F:1},
+    atoms:[{el:"H", pos:[-1.4,0,0]},{el:"Ar", pos:[0,0,0]},{el:"F", pos:[1.4,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Kovalentna", geometry:"Linearna",
+    description:"Prvi neutralni argonov spoj, sintetiziran 2000. (Helsinki).",
+    uses:"Istraživanja kemije plemenitih plinova"
+  },
+  {
+    formula:"KrF₂", name:"Kriptonov difluorid", ingredients:{Kr:1, F:2},
+    atoms:[{el:"Kr", pos:[0,0,0]},{el:"F", pos:[1.88,0,0]},{el:"F", pos:[-1.88,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna", geometry:"Linearna",
+    description:"Bijela krutina, jako oksidacijsko sredstvo, raspada se na zraku.",
+    uses:"Sinteza viših oksidacijskih stanja"
+  },
+  {
+    formula:"XeF₂", name:"Ksenonov difluorid", ingredients:{Xe:1, F:2},
+    atoms:[{el:"Xe", pos:[0,0,0]},{el:"F", pos:[2.0,0,0]},{el:"F", pos:[-2.0,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna", geometry:"Linearna",
+    description:"Stabilan kristalan spoj, klasičan primjer da plemeniti plinovi mogu reagirati.",
+    uses:"Fluoriranje u organskoj sintezi"
+  },
+  {
+    formula:"XeO₃", name:"Ksenonov trioksid", ingredients:{Xe:1, O:3},
+    atoms:[
+      {el:"Xe", pos:[0,0,0]},
+      {el:"O", pos:[1.4,0.6,0]},
+      {el:"O", pos:[-1.4,0.6,0]},
+      {el:"O", pos:[0,-0.9,1.2]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2}],
+    bondType:"Kovalentna", geometry:"Trigonalno piramidalna",
+    description:"Eksplozivan u krutom stanju, vrlo jako oksidacijsko sredstvo.",
+    uses:"Laboratorijsko oksidacijsko sredstvo"
+  },
+  {
+    formula:"RnF₂", name:"Radonov difluorid", ingredients:{Rn:1, F:2},
+    atoms:[{el:"Rn", pos:[0,0,0]},{el:"F", pos:[2.1,0,0]},{el:"F", pos:[-2.1,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Linearna",
+    description:"Jedini poznati radonov spoj, nastaje pri sobnoj temperaturi.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"OgF₄", name:"Oganesonov tetrafluorid (predviđen)", ingredients:{Og:1, F:4},
+    atoms:[
+      {el:"Og", pos:[0,0,0]},
+      {el:"F", pos:[1.4,1.4,1.4]},{el:"F", pos:[-1.4,-1.4,1.4]},
+      {el:"F", pos:[-1.4,1.4,-1.4]},{el:"F", pos:[1.4,-1.4,-1.4]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Tetraedarska",
+    description:"Teorijski predviđen spoj — Og bi trebao biti kemijski reaktivan.",
+    uses:"Teorijska istraživanja"
+  },
+
+  // ── Alkalijski metali (Rb, Cs, Fr) ────────────────────────────────────────
+  {
+    formula:"RbCl", name:"Rubidijev klorid", ingredients:{Rb:1, Cl:1},
+    atoms:[{el:"Rb", pos:[-1.5,0,0]},{el:"Cl", pos:[1.5,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (FCC)",
+    description:"Bezbojna sol, slična NaCl, dobro topljiva u vodi.",
+    uses:"Biokemijska istraživanja, elektrolit"
+  },
+  {
+    formula:"Rb₂O", name:"Rubidijev oksid", ingredients:{Rb:2, O:1},
+    atoms:[{el:"Rb", pos:[-1.7,0,0]},{el:"O", pos:[0,0,0]},{el:"Rb", pos:[1.7,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska", geometry:"Linearna (idealizirano)",
+    description:"Žućkasta krutina koja burno reagira s vodom.",
+    uses:"Reagens"
+  },
+  {
+    formula:"CsCl", name:"Cezijev klorid", ingredients:{Cs:1, Cl:1},
+    atoms:[{el:"Cs", pos:[-1.6,0,0]},{el:"Cl", pos:[1.6,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (CsCl tip)",
+    description:"Klasični primjer kristalne strukture s koordinacijom 8.",
+    uses:"Centrifugiranje DNA, optika"
+  },
+  {
+    formula:"CsOH", name:"Cezijev hidroksid", ingredients:{Cs:1, O:1, H:1},
+    atoms:[{el:"Cs", pos:[-1.7,0,0]},{el:"O", pos:[0,0,0]},{el:"H", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Linearna",
+    description:"Najjača poznata baza, izrazito jeziva.",
+    uses:"Snažni laboratorijski reagens"
+  },
+  {
+    formula:"FrCl", name:"Francijev klorid", ingredients:{Fr:1, Cl:1},
+    atoms:[{el:"Fr", pos:[-1.7,0,0]},{el:"Cl", pos:[1.7,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal",
+    description:"Vrlo rijedak i radioaktivan spoj, znamo ga samo iz ultramalih količina.",
+    uses:"Znanstvena istraživanja"
+  },
+
+  // ── Zemnoalkalijski (Be, Sr, Ra) ──────────────────────────────────────────
+  {
+    formula:"BeO", name:"Berilijev oksid", ingredients:{Be:1, O:1},
+    atoms:[{el:"Be", pos:[-0.7,0,0]},{el:"O", pos:[0.7,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Kovalentna/ionska", geometry:"Heksagonalni kristal",
+    description:"Visoko vatrostalna keramika s izvrsnom toplinskom vodljivošću.",
+    uses:"Elektronika, vatrostalni materijali (otrovan!)"
+  },
+  {
+    formula:"BeF₂", name:"Berilijev fluorid", ingredients:{Be:1, F:2},
+    atoms:[{el:"Be", pos:[0,0,0]},{el:"F", pos:[1.55,0,0]},{el:"F", pos:[-1.55,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Linearna",
+    description:"Staklasta krutina, koristi se u nuklearnim reaktorima na rastaljene soli.",
+    uses:"Nuklearna tehnologija"
+  },
+  {
+    formula:"SrCl₂", name:"Stroncijev klorid", ingredients:{Sr:1, Cl:2},
+    atoms:[{el:"Sr", pos:[0,0,0]},{el:"Cl", pos:[2.0,0.6,0]},{el:"Cl", pos:[-2.0,0.6,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Ionska", geometry:"Savijena (u plinu)",
+    description:"Bezbojna sol, daje crvenu boju plamenu.",
+    uses:"Vatromet, paste za osjetljive zube"
+  },
+  {
+    formula:"SrCO₃", name:"Stroncijev karbonat", ingredients:{Sr:1, C:1, O:3},
+    atoms:[
+      {el:"Sr", pos:[-2.5,0,0]},
+      {el:"C", pos:[0.5,0,0]},
+      {el:"O", pos:[1.7,0.7,0]},{el:"O", pos:[1.7,-0.7,0]},{el:"O", pos:[-0.6,0,0]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:1},{from:1,to:4,type:1}],
+    bondType:"Ionska (Sr²⁺ CO₃²⁻)", geometry:"Trigonalno planarni anion",
+    description:"Bijela krutina iz mineralostroncijanita.",
+    uses:"Vatromet (crvena), keramika, magneti"
+  },
+  {
+    formula:"RaCl₂", name:"Radijev klorid", ingredients:{Ra:1, Cl:2},
+    atoms:[{el:"Ra", pos:[0,0,0]},{el:"Cl", pos:[2.1,0.6,0]},{el:"Cl", pos:[-2.1,0.6,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Ionska", geometry:"Savijena (u plinu)",
+    description:"Prvi izolirani radijev spoj (Curiejevi, 1902.). Svijetli u mraku.",
+    uses:"Povijesna upotreba u medicini, danas istraživanja"
+  },
+  {
+    formula:"RaSO₄", name:"Radijev sulfat", ingredients:{Ra:1, S:1, O:4},
+    atoms:[
+      {el:"Ra", pos:[-3.0,0,0]},
+      {el:"S", pos:[0.5,0,0]},
+      {el:"O", pos:[0.5,1.5,0]},{el:"O", pos:[0.5,-1.5,0]},
+      {el:"O", pos:[2.0,0,0]},{el:"O", pos:[-1.0,0,0.5]}
+    ],
+    bonds:[{from:1,to:2,type:2},{from:1,to:3,type:2},{from:1,to:4,type:1},{from:1,to:5,type:1}],
+    bondType:"Ionska (Ra²⁺ SO₄²⁻)", geometry:"Tetraedarski anion",
+    description:"Najnetopljiviji sulfat, izrazito radioaktivan.",
+    uses:"Povijesno: izvor radija"
+  },
+
+  // ── Polumetali i nemetali ─────────────────────────────────────────────────
+  {
+    formula:"SeO₂", name:"Selenov dioksid", ingredients:{Se:1, O:2},
+    atoms:[{el:"Se", pos:[0,0,0]},{el:"O", pos:[1.6,0.5,0]},{el:"O", pos:[-1.6,0.5,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Polarna kovalentna", geometry:"Savijena (~125°)",
+    description:"Bijela krutina koja sublimira; oksidacijsko sredstvo.",
+    uses:"Sinteze, pigment, analiza"
+  },
+  {
+    formula:"H₂Se", name:"Vodikov selenid", ingredients:{H:2, Se:1},
+    atoms:[{el:"Se", pos:[0,0,0]},{el:"H", pos:[1.2,0.7,0]},{el:"H", pos:[-1.2,0.7,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Savijena (~91°)",
+    description:"Otrovan, smrdljiv plin (gore od H₂S).",
+    uses:"Doping poluvodiča"
+  },
+  {
+    formula:"GeO₂", name:"Germanijev dioksid", ingredients:{Ge:1, O:2},
+    atoms:[{el:"Ge", pos:[0,0,0]},{el:"O", pos:[1.7,0,0]},{el:"O", pos:[-1.7,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Polarna kovalentna", geometry:"Linearna (u plinu)",
+    description:"Bijeli prah, glavna ruda germanija.",
+    uses:"Optička vlakna, IR leće, katalizator"
+  },
+  {
+    formula:"GeH₄", name:"German (germanijev hidrid)", ingredients:{Ge:1, H:4},
+    atoms:[
+      {el:"Ge", pos:[0,0,0]},
+      {el:"H", pos:[1,1,1]},{el:"H", pos:[-1,-1,1]},
+      {el:"H", pos:[-1,1,-1]},{el:"H", pos:[1,-1,-1]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Bezbojan otrovan plin, analog metana.",
+    uses:"CVD postupak za poluvodiče"
+  },
+  {
+    formula:"As₂O₃", name:"Arsen(III) oksid", ingredients:{As:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"As", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"As", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Klasterska (As₄O₆)",
+    description:"Bijeli arsen — otrovan, povijesno je 'kralj otrova'.",
+    uses:"Liječenje leukemije, povijesno: pesticid"
+  },
+  {
+    formula:"AsH₃", name:"Arsin", ingredients:{As:1, H:3},
+    atoms:[
+      {el:"As", pos:[0,0,0]},
+      {el:"H", pos:[1.2,-0.4,0]},{el:"H", pos:[-0.6,-0.4,1.04]},{el:"H", pos:[-0.6,-0.4,-1.04]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Kovalentna", geometry:"Trigonalno piramidalna",
+    description:"Smrtonosan plin, povijesno detektiran Marshovim testom.",
+    uses:"Industrija poluvodiča"
+  },
+  {
+    formula:"Sb₂O₃", name:"Antimon(III) oksid", ingredients:{Sb:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Sb", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Sb", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Klasterska (Sb₄O₆)",
+    description:"Bijeli prah, najvažniji antimonov spoj.",
+    uses:"Usporivač gorenja u plastici, staklarstvo"
+  },
+  {
+    formula:"SbH₃", name:"Stibin", ingredients:{Sb:1, H:3},
+    atoms:[
+      {el:"Sb", pos:[0,0,0]},
+      {el:"H", pos:[1.2,-0.4,0]},{el:"H", pos:[-0.6,-0.4,1.04]},{el:"H", pos:[-0.6,-0.4,-1.04]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Kovalentna", geometry:"Trigonalno piramidalna",
+    description:"Otrovan plin neugodna mirisa.",
+    uses:"Industrija poluvodiča"
+  },
+  {
+    formula:"TeO₂", name:"Telurov dioksid", ingredients:{Te:1, O:2},
+    atoms:[{el:"Te", pos:[0,0,0]},{el:"O", pos:[1.8,0.6,0]},{el:"O", pos:[-1.8,0.6,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Kovalentna", geometry:"Savijena",
+    description:"Bijela krutina, osnova za telurova stakla.",
+    uses:"Akustooptika, infracrvena optika"
+  },
+  {
+    formula:"H₂Te", name:"Vodikov telurid", ingredients:{H:2, Te:1},
+    atoms:[{el:"Te", pos:[0,0,0]},{el:"H", pos:[1.3,0.7,0]},{el:"H", pos:[-1.3,0.7,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Polarna kovalentna", geometry:"Savijena (~90°)",
+    description:"Vrlo nestabilan, otrovan plin neugodnog mirisa.",
+    uses:"Sinteza poluvodiča"
+  },
+  {
+    formula:"PoO₂", name:"Polonijev dioksid", ingredients:{Po:1, O:2},
+    atoms:[{el:"Po", pos:[0,0,0]},{el:"O", pos:[1.9,0,0]},{el:"O", pos:[-1.9,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska/kovalentna", geometry:"Linearna (idealizirano)",
+    description:"Žuto-crvena radioaktivna krutina, najstabilniji oksid Po.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"HAt", name:"Vodikov astatid", ingredients:{H:1, At:1},
+    atoms:[{el:"H", pos:[-0.85,0,0]},{el:"At", pos:[0.85,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Slabo polarna kovalentna", geometry:"Linearna",
+    description:"Najslabija halogenidna kiselina, vrlo nestabilna.",
+    uses:"Istraživanja (At-211 u terapiji raka)"
+  },
+  {
+    formula:"TsF", name:"Tenesinov fluorid (predviđen)", ingredients:{Ts:1, F:1},
+    atoms:[{el:"Ts", pos:[-1.1,0,0]},{el:"F", pos:[1.1,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — Ts je sintetski element s vrlo kratkim životom.",
+    uses:"Teorijska istraživanja"
+  },
+
+  // ── Prijelazni metali (Sc, Ti grupa, V, Co, Ni, Y, Zr, Nb…) ───────────────
+  {
+    formula:"Sc₂O₃", name:"Skandijev oksid", ingredients:{Sc:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Sc", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Sc", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična (bixbyit)",
+    description:"Bijeli prah, najvažniji skandijev spoj.",
+    uses:"Visokokvalitetna keramika, rasvjeta"
+  },
+  {
+    formula:"ScCl₃", name:"Skandijev klorid", ingredients:{Sc:1, Cl:3},
+    atoms:[
+      {el:"Sc", pos:[0,0,0]},
+      {el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-1.15,2.0,0]},{el:"Cl", pos:[-1.15,-2.0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska", geometry:"Trigonalno planarna (u plinu)",
+    description:"Bijela higroskopna krutina.",
+    uses:"Sinteza Sc spojeva, katalizator"
+  },
+  {
+    formula:"V₂O₅", name:"Vanadijev pentoksid", ingredients:{V:2, O:5},
+    atoms:[
+      {el:"V", pos:[-1.8,0,0]},{el:"V", pos:[1.8,0,0]},
+      {el:"O", pos:[0,0,0]},
+      {el:"O", pos:[-3.4,0,0]},{el:"O", pos:[3.4,0,0]},
+      {el:"O", pos:[-1.8,1.6,0]},{el:"O", pos:[1.8,1.6,0]}
+    ],
+    bonds:[
+      {from:0,to:2,type:1},{from:1,to:2,type:1},
+      {from:0,to:3,type:2},{from:1,to:4,type:2},
+      {from:0,to:5,type:1},{from:1,to:6,type:1}
+    ],
+    bondType:"Kovalentna/ionska", geometry:"Slojevita kristalna",
+    description:"Narančasti prah, ključ industrijske proizvodnje sumporne kiseline.",
+    uses:"Katalizator (kontaktni proces), V baterije"
+  },
+  {
+    formula:"VOCl₃", name:"Vanadijev oksiklorid", ingredients:{V:1, O:1, Cl:3},
+    atoms:[
+      {el:"V", pos:[0,0,0]},
+      {el:"O", pos:[0,1.6,0]},
+      {el:"Cl", pos:[2.0,-0.6,0]},{el:"Cl", pos:[-1.0,-0.6,1.7]},{el:"Cl", pos:[-1.0,-0.6,-1.7]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Žuta tekućina, snažno hidrolizira.",
+    uses:"Katalizator za polimerizaciju"
+  },
+  {
+    formula:"CoO", name:"Kobaltov(II) oksid", ingredients:{Co:1, O:1},
+    atoms:[{el:"Co", pos:[-0.9,0,0]},{el:"O", pos:[0.9,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Ionska", geometry:"Kristal (NaCl tip)",
+    description:"Maslinasto-zelena krutina koja u staklu daje plavu boju.",
+    uses:"Plavi pigment u staklu i keramici"
+  },
+  {
+    formula:"CoCl₂", name:"Kobaltov(II) klorid", ingredients:{Co:1, Cl:2},
+    atoms:[{el:"Co", pos:[0,0,0]},{el:"Cl", pos:[2.1,0,0]},{el:"Cl", pos:[-2.1,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Ionska", geometry:"Linearna (u plinu)",
+    description:"Plava krutina, ružičasta kao hidrat — indikator vlage.",
+    uses:"Indikator vlage, simpatičke tinte"
+  },
+  {
+    formula:"NiO", name:"Niklov(II) oksid", ingredients:{Ni:1, O:1},
+    atoms:[{el:"Ni", pos:[-0.9,0,0]},{el:"O", pos:[0.9,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Ionska", geometry:"Kristal (NaCl tip)",
+    description:"Zelena krutina, glavni nikloy oksid.",
+    uses:"NiMH baterije, zeleni pigment, keramika"
+  },
+  {
+    formula:"NiCl₂", name:"Niklov(II) klorid", ingredients:{Ni:1, Cl:2},
+    atoms:[{el:"Ni", pos:[0,0,0]},{el:"Cl", pos:[2.1,0,0]},{el:"Cl", pos:[-2.1,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Ionska", geometry:"Linearna (u plinu)",
+    description:"Žuta krutina, zelena kao heksahidrat.",
+    uses:"Galvanizacija nikla, katalizator"
+  },
+  {
+    formula:"Y₂O₃", name:"Itrijev oksid", ingredients:{Y:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Y", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Y", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična (bixbyit)",
+    description:"Bijela krutina, podloga za fosfore (s Eu daje crveni TV fosfor).",
+    uses:"Crveni fosfori, YAG laseri, supravodiči"
+  },
+  {
+    formula:"YCl₃", name:"Itrijev klorid", ingredients:{Y:1, Cl:3},
+    atoms:[
+      {el:"Y", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,0,0]},{el:"Cl", pos:[-1.2,2.1,0]},{el:"Cl", pos:[-1.2,-2.1,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska", geometry:"Trigonalno planarna (u plinu)",
+    description:"Bijela higroskopna krutina.",
+    uses:"Sinteza itrijevih spojeva"
+  },
+  {
+    formula:"ZrO₂", name:"Cirkonijev oksid (cirkonija)", ingredients:{Zr:1, O:2},
+    atoms:[{el:"Zr", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska/kovalentna", geometry:"Linearna (idealizirano)",
+    description:"Bijela vatrostalna keramika, kubična cirkonija imitira dijamant.",
+    uses:"Zubni implantati, keramička oštrica, lažni dijamanti"
+  },
+  {
+    formula:"ZrCl₄", name:"Cirkonijev tetraklorid", ingredients:{Zr:1, Cl:4},
+    atoms:[
+      {el:"Zr", pos:[0,0,0]},
+      {el:"Cl", pos:[1.5,1.5,1.5]},{el:"Cl", pos:[-1.5,-1.5,1.5]},
+      {el:"Cl", pos:[-1.5,1.5,-1.5]},{el:"Cl", pos:[1.5,-1.5,-1.5]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Bijela krutina, koristi se u proizvodnji čistog Zr.",
+    uses:"Proizvodnja cirkonijevog metala (Krollov proces)"
+  },
+  {
+    formula:"Nb₂O₅", name:"Niobijev pentoksid", ingredients:{Nb:2, O:5},
+    atoms:[
+      {el:"Nb", pos:[-1.8,0,0]},{el:"Nb", pos:[1.8,0,0]},
+      {el:"O", pos:[0,0,0]},{el:"O", pos:[-3.4,0,0]},{el:"O", pos:[3.4,0,0]},
+      {el:"O", pos:[-1.8,1.6,0]},{el:"O", pos:[1.8,1.6,0]}
+    ],
+    bonds:[{from:0,to:2,type:1},{from:1,to:2,type:1},{from:0,to:3,type:2},{from:1,to:4,type:2},{from:0,to:5,type:1},{from:1,to:6,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Slojevita kristalna",
+    description:"Bezbojna krutina, podloga za niobate i kondenzatore.",
+    uses:"Optičko staklo, kondenzatori, supravodiči"
+  },
+  {
+    formula:"MoO₃", name:"Molibdenov trioksid", ingredients:{Mo:1, O:3},
+    atoms:[
+      {el:"Mo", pos:[0,0,0]},
+      {el:"O", pos:[1.7,0,0]},{el:"O", pos:[-1.7,0,0]},{el:"O", pos:[0,1.7,0]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2}],
+    bondType:"Kovalentna", geometry:"Slojevita kristalna",
+    description:"Žuto-zelena krutina, glavni izvor Mo metala.",
+    uses:"Katalizator, čelične legure"
+  },
+  {
+    formula:"MoS₂", name:"Molibdenov disulfid", ingredients:{Mo:1, S:2},
+    atoms:[{el:"Mo", pos:[0,0,0]},{el:"S", pos:[1.5,1.0,0]},{el:"S", pos:[-1.5,1.0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna", geometry:"Slojevita (kao grafit)",
+    description:"Crna mineralna molibdenita, klizav kao grafit.",
+    uses:"Suho mazivo, katalizator hidroobrade nafte"
+  },
+  {
+    formula:"Tc₂O₇", name:"Tehnecijev heptoksid", ingredients:{Tc:2, O:7},
+    atoms:[
+      {el:"Tc", pos:[-2.0,0,0]},{el:"Tc", pos:[2.0,0,0]},
+      {el:"O", pos:[0,0,0]},
+      {el:"O", pos:[-3.6,0,0]},{el:"O", pos:[3.6,0,0]},
+      {el:"O", pos:[-2.0,1.6,0]},{el:"O", pos:[2.0,1.6,0]},
+      {el:"O", pos:[-2.0,-1.6,0]},{el:"O", pos:[2.0,-1.6,0]}
+    ],
+    bonds:[
+      {from:0,to:2,type:1},{from:1,to:2,type:1},
+      {from:0,to:3,type:2},{from:1,to:4,type:2},
+      {from:0,to:5,type:2},{from:1,to:6,type:2},
+      {from:0,to:7,type:2},{from:1,to:8,type:2}
+    ],
+    bondType:"Kovalentna", geometry:"Mostni di-tetraedar",
+    description:"Žuta krutina, jedini molekularni heptoksid prijelaznog metala.",
+    uses:"Istraživanja (Tc-99m je glavni medicinski radioizotop)"
+  },
+  {
+    formula:"RuO₄", name:"Rutenijev tetroksid", ingredients:{Ru:1, O:4},
+    atoms:[
+      {el:"Ru", pos:[0,0,0]},
+      {el:"O", pos:[1.1,1.1,1.1]},{el:"O", pos:[-1.1,-1.1,1.1]},
+      {el:"O", pos:[-1.1,1.1,-1.1]},{el:"O", pos:[1.1,-1.1,-1.1]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2},{from:0,to:4,type:2}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Žuta hlapljiva krutina, vrlo otrovna i jako oksidacijsko sredstvo.",
+    uses:"Bojenje uzoraka u elektronskoj mikroskopiji"
+  },
+  {
+    formula:"Rh₂O₃", name:"Rodijev(III) oksid", ingredients:{Rh:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Rh", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Rh", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Korund",
+    description:"Sivi prah, jedini stabilni rodijev oksid.",
+    uses:"Katalizator, premazi"
+  },
+  {
+    formula:"PdCl₂", name:"Paladijev(II) klorid", ingredients:{Pd:1, Cl:2},
+    atoms:[{el:"Pd", pos:[0,0,0]},{el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-2.3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Kvadratno planarna (polimer)",
+    description:"Crvenosmeđa krutina, polazna točka za mnoge Pd katalizatore.",
+    uses:"Detekcija CO, katalizatori (Wackerov proces)"
+  },
+  {
+    formula:"CdO", name:"Kadmijev oksid", ingredients:{Cd:1, O:1},
+    atoms:[{el:"Cd", pos:[-0.9,0,0]},{el:"O", pos:[0.9,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Ionska", geometry:"Kristal (NaCl tip)",
+    description:"Smeđa krutina, otrovna.",
+    uses:"Pigmenti (povijesno), elektrolize"
+  },
+  {
+    formula:"CdS", name:"Kadmijev sulfid", ingredients:{Cd:1, S:1},
+    atoms:[{el:"Cd", pos:[-1.1,0,0]},{el:"S", pos:[1.1,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Kovalentna/ionska", geometry:"Würtzit/sfalerit",
+    description:"Žuti do narančasti pigment, poluvodič.",
+    uses:"Solarne ćelije, pigment 'kadmij žuta'"
+  },
+  {
+    formula:"HfO₂", name:"Hafnijev oksid", ingredients:{Hf:1, O:2},
+    atoms:[{el:"Hf", pos:[0,0,0]},{el:"O", pos:[1.9,0,0]},{el:"O", pos:[-1.9,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska/kovalentna", geometry:"Linearna (idealizirano)",
+    description:"Bijela vatrostalna keramika.",
+    uses:"High-k dielektrici u procesorima, optički premazi"
+  },
+  {
+    formula:"Ta₂O₅", name:"Tantalov pentoksid", ingredients:{Ta:2, O:5},
+    atoms:[
+      {el:"Ta", pos:[-1.8,0,0]},{el:"Ta", pos:[1.8,0,0]},
+      {el:"O", pos:[0,0,0]},{el:"O", pos:[-3.4,0,0]},{el:"O", pos:[3.4,0,0]},
+      {el:"O", pos:[-1.8,1.6,0]},{el:"O", pos:[1.8,1.6,0]}
+    ],
+    bonds:[{from:0,to:2,type:1},{from:1,to:2,type:1},{from:0,to:3,type:2},{from:1,to:4,type:2},{from:0,to:5,type:1},{from:1,to:6,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Slojevita kristalna",
+    description:"Bijela krutina, izuzetan dielektrik.",
+    uses:"Tantalski kondenzatori, optička stakla"
+  },
+  {
+    formula:"WO₃", name:"Volframov trioksid", ingredients:{W:1, O:3},
+    atoms:[
+      {el:"W", pos:[0,0,0]},
+      {el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]},{el:"O", pos:[0,1.8,0]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2}],
+    bondType:"Kovalentna/ionska", geometry:"Perovskitna varijanta",
+    description:"Žuti prah, glavni izvor W metala.",
+    uses:"Elektrokromatska stakla, katalizator"
+  },
+  {
+    formula:"WC", name:"Volframov karbid", ingredients:{W:1, C:1},
+    atoms:[{el:"W", pos:[-0.9,0,0]},{el:"C", pos:[0.9,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Metalna/kovalentna", geometry:"Heksagonalni kristal",
+    description:"Iznimno tvrd materijal, gotovo poput dijamanta.",
+    uses:"Svrdla, alati, projektili, nakit"
+  },
+  {
+    formula:"Re₂O₇", name:"Renijev heptoksid", ingredients:{Re:2, O:7},
+    atoms:[
+      {el:"Re", pos:[-2.0,0,0]},{el:"Re", pos:[2.0,0,0]},
+      {el:"O", pos:[0,0,0]},
+      {el:"O", pos:[-3.6,0,0]},{el:"O", pos:[3.6,0,0]},
+      {el:"O", pos:[-2.0,1.6,0]},{el:"O", pos:[2.0,1.6,0]},
+      {el:"O", pos:[-2.0,-1.6,0]},{el:"O", pos:[2.0,-1.6,0]}
+    ],
+    bonds:[
+      {from:0,to:2,type:1},{from:1,to:2,type:1},
+      {from:0,to:3,type:2},{from:1,to:4,type:2},
+      {from:0,to:5,type:2},{from:1,to:6,type:2},
+      {from:0,to:7,type:2},{from:1,to:8,type:2}
+    ],
+    bondType:"Kovalentna", geometry:"Mostni di-tetraedar",
+    description:"Žuta krutina, izvor renija u industriji.",
+    uses:"Katalizatori (rafinerije, metateza alkena)"
+  },
+  {
+    formula:"OsO₄", name:"Osmijev tetroksid", ingredients:{Os:1, O:4},
+    atoms:[
+      {el:"Os", pos:[0,0,0]},
+      {el:"O", pos:[1.1,1.1,1.1]},{el:"O", pos:[-1.1,-1.1,1.1]},
+      {el:"O", pos:[-1.1,1.1,-1.1]},{el:"O", pos:[1.1,-1.1,-1.1]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2},{from:0,to:4,type:2}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Blijedo žuta hlapljiva krutina, vrlo otrovna.",
+    uses:"Bojenje bioloških uzoraka, organska sinteza"
+  },
+  {
+    formula:"IrO₂", name:"Iridijev dioksid", ingredients:{Ir:1, O:2},
+    atoms:[{el:"Ir", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Kovalentna", geometry:"Rutilna struktura",
+    description:"Crna krutina, jedan od rijetkih stabilnih iridijevih oksida.",
+    uses:"Elektrode za elektrolizu vode, katalizatori"
+  },
+  {
+    formula:"PtCl₂", name:"Platinin(II) klorid", ingredients:{Pt:1, Cl:2},
+    atoms:[{el:"Pt", pos:[0,0,0]},{el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-2.3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna", geometry:"Klasterska (Pt₆Cl₁₂)",
+    description:"Maslinasto-zelena krutina.",
+    uses:"Sinteza Pt katalizatora i lijekova (npr. cisplatin)"
+  },
+  {
+    formula:"PtO₂", name:"Platinin dioksid (Adamsov katalizator)", ingredients:{Pt:1, O:2},
+    atoms:[{el:"Pt", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Kovalentna", geometry:"Rutilna struktura",
+    description:"Smeđi prah, klasični hidrogenacijski katalizator.",
+    uses:"Hidrogenacija u organskoj sintezi"
+  },
+  {
+    formula:"AuCl₃", name:"Zlatov(III) klorid", ingredients:{Au:1, Cl:3},
+    atoms:[
+      {el:"Au", pos:[0,0,0]},
+      {el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-2.3,0,0]},{el:"Cl", pos:[0,2.3,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Kovalentna", geometry:"Kvadratno planarna (dimer)",
+    description:"Tamnocrveni kristali, polazni materijal za zlatne spojeve.",
+    uses:"Sinteza Au katalizatora i Au koloida"
+  },
+  {
+    formula:"Au₂O₃", name:"Zlatov(III) oksid", ingredients:{Au:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Au", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Au", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Lančana struktura",
+    description:"Smeđa krutina, jedini stabilni zlatni oksid.",
+    uses:"Bojenje stakla i porculana"
+  },
+  {
+    formula:"HgO", name:"Živin(II) oksid", ingredients:{Hg:1, O:1},
+    atoms:[{el:"Hg", pos:[-1.0,0,0]},{el:"O", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Kovalentna/ionska", geometry:"Lančana kristalna",
+    description:"Crveno-žuta krutina, povijesno korištena za pripravu kisika (Priestley).",
+    uses:"Sinteza, povijesno: lijekovi (otrovan!)"
+  },
+  {
+    formula:"HgCl₂", name:"Živin(II) klorid (sublimat)", ingredients:{Hg:1, Cl:2},
+    atoms:[{el:"Hg", pos:[0,0,0]},{el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-2.3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Kovalentna", geometry:"Linearna",
+    description:"Bijela krutina, vrlo otrovna; povijesni 'sublimat'.",
+    uses:"Sinteza (otrovan!)"
+  },
+
+  // ── Posprijelazni metali ──────────────────────────────────────────────────
+  {
+    formula:"Ga₂O₃", name:"Galijev oksid", ingredients:{Ga:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Ga", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Ga", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Monoklinska kristalna",
+    description:"Bijeli prah, poluvodič širokog raspora.",
+    uses:"Snažni poluvodički uređaji nove generacije"
+  },
+  {
+    formula:"GaAs", name:"Galijev arsenid", ingredients:{Ga:1, As:1},
+    atoms:[{el:"Ga", pos:[-1.2,0,0]},{el:"As", pos:[1.2,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna", geometry:"Sfalerit",
+    description:"Tamnosivi poluvodič, brži od silicija pri visokim frekvencijama.",
+    uses:"Mobilna elektronika, LED, solarne ćelije"
+  },
+  {
+    formula:"In₂O₃", name:"Indijev oksid", ingredients:{In:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"In", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"In", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Bixbyit",
+    description:"Žućkasti prah; s kositrom daje ITO za prozirne elektrode.",
+    uses:"ITO premazi za zaslone na dodir"
+  },
+  {
+    formula:"InCl₃", name:"Indijev klorid", ingredients:{In:1, Cl:3},
+    atoms:[
+      {el:"In", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,0,0]},{el:"Cl", pos:[-1.2,2.1,0]},{el:"Cl", pos:[-1.2,-2.1,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Trigonalno planarna (u plinu)",
+    description:"Bijela higroskopna krutina.",
+    uses:"Sinteza, katalizator"
+  },
+  {
+    formula:"Tl₂O₃", name:"Talijev(III) oksid", ingredients:{Tl:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Tl", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Tl", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Bixbyit",
+    description:"Smeđa krutina, otrovan oksid.",
+    uses:"Poluvodički materijali"
+  },
+  {
+    formula:"TlCl", name:"Talijev(I) klorid", ingredients:{Tl:1, Cl:1},
+    atoms:[{el:"Tl", pos:[-1.6,0,0]},{el:"Cl", pos:[1.6,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Ionska", geometry:"Kristal (CsCl tip)",
+    description:"Bijela krutina, slična AgCl.",
+    uses:"Optika, istraživanja (otrovan!)"
+  },
+  {
+    formula:"Bi₂O₃", name:"Bizmutov oksid", ingredients:{Bi:2, O:3},
+    atoms:[
+      {el:"O", pos:[-3,0,0]},{el:"Bi", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},
+      {el:"Bi", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska/kovalentna", geometry:"Monoklinska",
+    description:"Žuti prah, glavni komercijalni bizmutov spoj.",
+    uses:"Kozmetika, vatromet, gorivne ćelije"
+  },
+  {
+    formula:"BiCl₃", name:"Bizmutov klorid", ingredients:{Bi:1, Cl:3},
+    atoms:[
+      {el:"Bi", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,-0.6,0]},{el:"Cl", pos:[-1.2,-0.6,2.1]},{el:"Cl", pos:[-1.2,-0.6,-2.1]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Kovalentna/ionska", geometry:"Trigonalno piramidalna",
+    description:"Bijela krutina, hidrolizira u BiOCl.",
+    uses:"Kozmetika ('biserni sjaj'), katalizator"
+  },
+  {
+    formula:"NhCl", name:"Nihonijev klorid (predviđen)", ingredients:{Nh:1, Cl:1},
+    atoms:[{el:"Nh", pos:[-1.4,0,0]},{el:"Cl", pos:[1.4,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — Nh je sintetski element.",
+    uses:"Teorijska istraživanja"
+  },
+  {
+    formula:"FlO", name:"Flerovijev oksid (predviđen)", ingredients:{Fl:1, O:1},
+    atoms:[{el:"Fl", pos:[-1.0,0,0]},{el:"O", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:2}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — predviđa se da Fl ima neka plemenita svojstva.",
+    uses:"Teorijska istraživanja"
+  },
+  {
+    formula:"McH", name:"Moskovijev hidrid (predviđen)", ingredients:{Mc:1, H:1},
+    atoms:[{el:"Mc", pos:[-1.0,0,0]},{el:"H", pos:[1.0,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — Mc je sintetski element kratka života.",
+    uses:"Teorijska istraživanja"
+  },
+  {
+    formula:"LvO₂", name:"Livermorijev dioksid (predviđen)", ingredients:{Lv:1, O:2},
+    atoms:[{el:"Lv", pos:[0,0,0]},{el:"O", pos:[1.9,0,0]},{el:"O", pos:[-1.9,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna (idealizirano)",
+    description:"Teorijski spoj — predviđen analogno PoO₂.",
+    uses:"Teorijska istraživanja"
+  },
+
+  // ── Lantanoidi (svi M₂O₃) ─────────────────────────────────────────────────
+  {
+    formula:"La₂O₃", name:"Lantanov oksid", ingredients:{La:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"La", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"La", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Heksagonska (A-tip)",
+    description:"Bijeli prah, glavna komponenta optičkog stakla velikog indeksa loma.",
+    uses:"Optička stakla, katalizatori, fosfori"
+  },
+  {
+    formula:"CeO₂", name:"Cerijev(IV) oksid (cerija)", ingredients:{Ce:1, O:2},
+    atoms:[{el:"Ce", pos:[0,0,0]},{el:"O", pos:[1.7,0,0]},{el:"O", pos:[-1.7,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluoritna struktura",
+    description:"Blijedo žuti prah, redoks između Ce³⁺ i Ce⁴⁺ čini ga moćnim katalizatorom.",
+    uses:"Katalitički pretvarači, prah za poliranje"
+  },
+  {
+    formula:"Pr₂O₃", name:"Prazeodimijev oksid", ingredients:{Pr:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Pr", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Pr", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Heksagonska",
+    description:"Zelenkasta krutina, daje žuto-zelene boje u staklu.",
+    uses:"Pigmenti, zaštitne naočale za zavarivanje"
+  },
+  {
+    formula:"Nd₂O₃", name:"Neodimijev oksid", ingredients:{Nd:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Nd", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Nd", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Heksagonska",
+    description:"Plavkasti prah, daje karakterističnu ljubičastu boju u staklu.",
+    uses:"Bojenje stakla, dopiranje YAG laserskih kristala"
+  },
+  {
+    formula:"Pm₂O₃", name:"Prometijev oksid", ingredients:{Pm:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Pm", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Pm", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Monoklinska",
+    description:"Ružičasti radioaktivni prah — Pm nema stabilnih izotopa.",
+    uses:"Svjetleća boja, beta-baterije"
+  },
+  {
+    formula:"Sm₂O₃", name:"Samarijev oksid", ingredients:{Sm:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Sm", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Sm", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Blijedo žuti prah, apsorbira neutrone.",
+    uses:"Nuklearni reaktori, optika"
+  },
+  {
+    formula:"Eu₂O₃", name:"Europijev oksid", ingredients:{Eu:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Eu", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Eu", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Bijelo-ružičasti prah, daje crveni i plavi fosfor u TV/LED zaslonima.",
+    uses:"Fosfori (crveni TV), euro-novčanice (UV oznake)"
+  },
+  {
+    formula:"Gd₂O₃", name:"Gadolinijev oksid", ingredients:{Gd:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Gd", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Gd", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Bijeli prah; Gd³⁺ snažno utječe na MR signal.",
+    uses:"MR kontrastna sredstva, neutronska zaštita"
+  },
+  {
+    formula:"Tb₂O₃", name:"Terbijev oksid", ingredients:{Tb:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Tb", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Tb", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Bijeli prah, prekursor zelenih fosfora.",
+    uses:"Zeleni fosfori (TV/LED), magnetostriktivne legure"
+  },
+  {
+    formula:"Dy₂O₃", name:"Disprozijev oksid", ingredients:{Dy:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Dy", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Dy", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Bijeli prah s blagim zelenkastim odsjajem.",
+    uses:"Magneti (NdFeB s Dy), dozimetri"
+  },
+  {
+    formula:"Ho₂O₃", name:"Holmijev oksid", ingredients:{Ho:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Ho", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Ho", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Žuto-narančasti prah; pod fluorescentnim svjetlom mijenja boju.",
+    uses:"Standardi za optičke spektrofotometre, laseri"
+  },
+  {
+    formula:"Er₂O₃", name:"Erbijev oksid", ingredients:{Er:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Er", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Er", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Ružičasti prah, ključan za pojačala u optičkim vlaknima.",
+    uses:"EDFA pojačala (1550 nm), bojenje stakla"
+  },
+  {
+    formula:"Tm₂O₃", name:"Tulijev oksid", ingredients:{Tm:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Tm", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Tm", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Blijedo zelenkasti prah, najrjeđi nealuminoidni lantanoid.",
+    uses:"Tm laseri, prijenosni rendgenski uređaji"
+  },
+  {
+    formula:"Yb₂O₃", name:"Iterbijev oksid", ingredients:{Yb:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Yb", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Yb", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Bijeli prah, dopant za vrlo precizne atomske satove.",
+    uses:"Yb optički atomski satovi, laseri"
+  },
+  {
+    formula:"Lu₂O₃", name:"Lutecijev oksid", ingredients:{Lu:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Lu", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Lu", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Kubična",
+    description:"Bijeli prah, posljednji lantanoid; rijedak i skup.",
+    uses:"PET scintilatori (LSO/LYSO kristali), katalizatori"
+  },
+
+  // ── Aktinoidi ─────────────────────────────────────────────────────────────
+  {
+    formula:"Ac₂O₃", name:"Aktinijev oksid", ingredients:{Ac:2, O:3},
+    atoms:[{el:"O", pos:[-3,0,0]},{el:"Ac", pos:[-1.5,0,0]},{el:"O", pos:[0,0,0]},{el:"Ac", pos:[1.5,0,0]},{el:"O", pos:[3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:1,to:2,type:1},{from:2,to:3,type:1},{from:3,to:4,type:1}],
+    bondType:"Ionska", geometry:"Heksagonska",
+    description:"Bijeli radioaktivni prah; Ac svijetli plavičasto u mraku.",
+    uses:"Ac-225 ciljana terapija raka"
+  },
+  {
+    formula:"ThO₂", name:"Torijev dioksid (torija)", ingredients:{Th:1, O:2},
+    atoms:[{el:"Th", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Bijeli prah, ima najviše talište od svih oksida (~3300 °C).",
+    uses:"Vatrostalna keramika, potencijalno nukl. gorivo"
+  },
+  {
+    formula:"PaO₂", name:"Protaktinijev dioksid", ingredients:{Pa:1, O:2},
+    atoms:[{el:"Pa", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Crna radioaktivna krutina.",
+    uses:"Znanstvena istraživanja"
+  },
+  {
+    formula:"UO₂", name:"Uranov(IV) oksid", ingredients:{U:1, O:2},
+    atoms:[{el:"U", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Crna keramika, glavni oblik nuklearnog goriva.",
+    uses:"Gorivne pelete u nuklearnim reaktorima"
+  },
+  {
+    formula:"UF₆", name:"Uranov heksafluorid", ingredients:{U:1, F:6},
+    atoms:[
+      {el:"U", pos:[0,0,0]},
+      {el:"F", pos:[2.0,0,0]},{el:"F", pos:[-2.0,0,0]},
+      {el:"F", pos:[0,2.0,0]},{el:"F", pos:[0,-2.0,0]},
+      {el:"F", pos:[0,0,2.0]},{el:"F", pos:[0,0,-2.0]}
+    ],
+    bonds:[
+      {from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},
+      {from:0,to:4,type:1},{from:0,to:5,type:1},{from:0,to:6,type:1}
+    ],
+    bondType:"Kovalentna", geometry:"Oktaedarska",
+    description:"Bijela krutina koja sublimira; ključ za odvajanje izotopa urana.",
+    uses:"Obogaćivanje urana (centrifuge)"
+  },
+  {
+    formula:"NpO₂", name:"Neptunijev dioksid", ingredients:{Np:1, O:2},
+    atoms:[{el:"Np", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Zelenkasta radioaktivna krutina.",
+    uses:"Detektori neutrona, istraživanja"
+  },
+  {
+    formula:"PuO₂", name:"Plutonijev dioksid", ingredients:{Pu:1, O:2},
+    atoms:[{el:"Pu", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Žuto-smeđa keramika, oblik plutonija u MOX-gorivu i RTG-ovima.",
+    uses:"Nuklearno gorivo (MOX), RTG za svemirske sonde"
+  },
+  {
+    formula:"AmO₂", name:"Americijev dioksid", ingredients:{Am:1, O:2},
+    atoms:[{el:"Am", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Crna krutina; Am-241 emitira alfa-čestice.",
+    uses:"Detektori dima"
+  },
+  {
+    formula:"CmO₂", name:"Kirijev dioksid", ingredients:{Cm:1, O:2},
+    atoms:[{el:"Cm", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Crna krutina, jako radioaktivna.",
+    uses:"RTG za svemirske misije"
+  },
+  {
+    formula:"BkO₂", name:"Berkelijev dioksid", ingredients:{Bk:1, O:2},
+    atoms:[{el:"Bk", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Smeđkasta krutina, korištena za sintezu Ts-117.",
+    uses:"Sinteza superteških elemenata"
+  },
+  {
+    formula:"CfO₂", name:"Kalifornijev dioksid", ingredients:{Cf:1, O:2},
+    atoms:[{el:"Cf", pos:[0,0,0]},{el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]}],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2}],
+    bondType:"Ionska", geometry:"Fluorit",
+    description:"Crna krutina, snažan izvor neutrona.",
+    uses:"Pokretanje nuklearnih reaktora, neutronska radiografija"
+  },
+  {
+    formula:"EsCl₃", name:"Ajnštajnijev klorid", ingredients:{Es:1, Cl:3},
+    atoms:[
+      {el:"Es", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,0,0]},{el:"Cl", pos:[-1.2,2.1,0]},{el:"Cl", pos:[-1.2,-2.1,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska", geometry:"Trigonalno planarna (u plinu)",
+    description:"Bjelkasta jako radioaktivna krutina; samosvjetli zbog raspada.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"FmCl₃", name:"Fermijev klorid", ingredients:{Fm:1, Cl:3},
+    atoms:[
+      {el:"Fm", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,0,0]},{el:"Cl", pos:[-1.2,2.1,0]},{el:"Cl", pos:[-1.2,-2.1,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska", geometry:"Trigonalno planarna",
+    description:"Hipotetski opažen u tragovima — pripremaju se ultramale količine.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"MdCl₃", name:"Mendelevijev klorid", ingredients:{Md:1, Cl:3},
+    atoms:[
+      {el:"Md", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,0,0]},{el:"Cl", pos:[-1.2,2.1,0]},{el:"Cl", pos:[-1.2,-2.1,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska", geometry:"Trigonalno planarna",
+    description:"Pretpostavljen iz ionsko-izmjenjivačke kemije pojedinačnih atoma.",
+    uses:"Znanstvena istraživanja"
+  },
+  {
+    formula:"NoCl₂", name:"Nobelijev klorid", ingredients:{No:1, Cl:2},
+    atoms:[{el:"No", pos:[0,0,0]},{el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-2.3,0,0]}],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1}],
+    bondType:"Ionska", geometry:"Linearna",
+    description:"No je jedini aktinoid stabilan u +2 stanju u vodi.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"LrCl₃", name:"Lavrencijev klorid", ingredients:{Lr:1, Cl:3},
+    atoms:[
+      {el:"Lr", pos:[0,0,0]},
+      {el:"Cl", pos:[2.4,0,0]},{el:"Cl", pos:[-1.2,2.1,0]},{el:"Cl", pos:[-1.2,-2.1,0]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1}],
+    bondType:"Ionska", geometry:"Trigonalno planarna",
+    description:"Posljednji aktinoid; ponaša se kao trovalentni kation.",
+    uses:"Znanstvena istraživanja"
+  },
+
+  // ── Sintetski superteški (Rf–Cn) ──────────────────────────────────────────
+  {
+    formula:"RfCl₄", name:"Rutherfordijev tetraklorid", ingredients:{Rf:1, Cl:4},
+    atoms:[
+      {el:"Rf", pos:[0,0,0]},
+      {el:"Cl", pos:[1.5,1.5,1.5]},{el:"Cl", pos:[-1.5,-1.5,1.5]},
+      {el:"Cl", pos:[-1.5,1.5,-1.5]},{el:"Cl", pos:[1.5,-1.5,-1.5]}
+    ],
+    bonds:[{from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},{from:0,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Eksperimentalno opažen — pokazao da se Rf ponaša kao Hf, ne kao aktinoid.",
+    uses:"Istraživanja kemije superteških elemenata"
+  },
+  {
+    formula:"DbCl₅", name:"Dubnijev pentaklorid", ingredients:{Db:1, Cl:5},
+    atoms:[
+      {el:"Db", pos:[0,0,0]},
+      {el:"Cl", pos:[2.3,0,0]},{el:"Cl", pos:[-2.3,0,0]},
+      {el:"Cl", pos:[0,2.3,0]},{el:"Cl", pos:[0,-2.3,0]},
+      {el:"Cl", pos:[0,0,2.3]}
+    ],
+    bonds:[
+      {from:0,to:1,type:1},{from:0,to:2,type:1},{from:0,to:3,type:1},
+      {from:0,to:4,type:1},{from:0,to:5,type:1}
+    ],
+    bondType:"Kovalentna", geometry:"Trigonalno bipiramidalna",
+    description:"Eksperimentalno opažen u plinskim kromatografijama atom-po-atom.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"SgO₃", name:"Seaborgijev trioksid", ingredients:{Sg:1, O:3},
+    atoms:[
+      {el:"Sg", pos:[0,0,0]},
+      {el:"O", pos:[1.8,0,0]},{el:"O", pos:[-1.8,0,0]},{el:"O", pos:[0,1.8,0]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2}],
+    bondType:"Kovalentna", geometry:"Trigonalno planarna",
+    description:"Sg(O)₂(OH)₂ i SgO₃ opaženi 2014. — Sg se ponaša poput W i Mo.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"BhO₃Cl", name:"Borijev oksiklorid", ingredients:{Bh:1, O:3, Cl:1},
+    atoms:[
+      {el:"Bh", pos:[0,0,0]},
+      {el:"O", pos:[1.6,0,0]},{el:"O", pos:[-0.8,1.4,0]},{el:"O", pos:[-0.8,-1.4,0]},
+      {el:"Cl", pos:[0,0,2.0]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2},{from:0,to:4,type:1}],
+    bondType:"Kovalentna", geometry:"Pseudo-tetraedarska",
+    description:"Opažen 2000. — pokazao da je Bh teški analog tehnecija/renija.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"HsO₄", name:"Hasijev tetroksid", ingredients:{Hs:1, O:4},
+    atoms:[
+      {el:"Hs", pos:[0,0,0]},
+      {el:"O", pos:[1.1,1.1,1.1]},{el:"O", pos:[-1.1,-1.1,1.1]},
+      {el:"O", pos:[-1.1,1.1,-1.1]},{el:"O", pos:[1.1,-1.1,-1.1]}
+    ],
+    bonds:[{from:0,to:1,type:2},{from:0,to:2,type:2},{from:0,to:3,type:2},{from:0,to:4,type:2}],
+    bondType:"Kovalentna", geometry:"Tetraedarska",
+    description:"Opažen 2002. — hlapljiv poput OsO₄, što potvrđuje srodnost s Os.",
+    uses:"Istraživanja"
+  },
+  {
+    formula:"MtCl", name:"Majtnerijev klorid (predviđen)", ingredients:{Mt:1, Cl:1},
+    atoms:[{el:"Mt", pos:[-1.4,0,0]},{el:"Cl", pos:[1.4,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — kemija Mt nije eksperimentalno provjerena.",
+    uses:"Teorijska istraživanja"
+  },
+  {
+    formula:"DsCl", name:"Darmštatijev klorid (predviđen)", ingredients:{Ds:1, Cl:1},
+    atoms:[{el:"Ds", pos:[-1.4,0,0]},{el:"Cl", pos:[1.4,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — Ds bi trebao biti analog platini.",
+    uses:"Teorijska istraživanja"
+  },
+  {
+    formula:"RgCl", name:"Rendgenijev klorid (predviđen)", ingredients:{Rg:1, Cl:1},
+    atoms:[{el:"Rg", pos:[-1.4,0,0]},{el:"Cl", pos:[1.4,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Kovalentna (predviđena)", geometry:"Linearna",
+    description:"Teorijski spoj — Rg bi trebao biti analog zlatu.",
+    uses:"Teorijska istraživanja"
+  },
+  {
+    formula:"CnHg", name:"Kopernicij-živin spoj (opažen)", ingredients:{Cn:1, Hg:1},
+    atoms:[{el:"Cn", pos:[-1.5,0,0]},{el:"Hg", pos:[1.5,0,0]}],
+    bonds:[{from:0,to:1,type:1}],
+    bondType:"Metalna", geometry:"Linearna",
+    description:"Eksperimentalno opažena adsorpcija Cn na Au i Hg — Cn je nalik živi.",
+    uses:"Istraživanja"
   }
 ];
