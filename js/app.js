@@ -237,19 +237,23 @@ function getGlassGeometry() {
 // =============================================================
 function makeGlassMaterial(catKey) {
   const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
-  // Lagani tint: bijela + 50% kategorije
-  const tinted = new THREE.Color(cat.color).lerp(new THREE.Color(0xffffff), 0.5);
+  // Snažan tint: zadržavamo 85% kategorije, samo 15% bijele za soft staklen ton
+  const tinted = new THREE.Color(cat.color).lerp(new THREE.Color(0xffffff), 0.15);
+  // Emissive za dodatnu dubinu boje (low intensity, ne sjaji previše)
+  const emis = new THREE.Color(cat.color).multiplyScalar(0.35);
   return new THREE.MeshPhysicalMaterial({
     color: tinted,
+    emissive: emis,
+    emissiveIntensity: 0.6,
     transparent: true,
-    opacity: 0.42,
-    roughness: 0.14,
-    metalness: 0.02,
+    opacity: 0.78,
+    roughness: 0.18,
+    metalness: 0.05,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.08,
+    clearcoatRoughness: 0.1,
     side: THREE.DoubleSide,
     depthWrite: true,
-    envMapIntensity: 1.1
+    envMapIntensity: 0.8
   });
 }
 
@@ -354,7 +358,7 @@ function setCardDim(card, dimmed) {
   const glass = card.material;
   const text = card.userData.textMat;
   if (glass) {
-    glass.opacity = dimmed ? 0.06 : 0.42;
+    glass.opacity = dimmed ? 0.08 : 0.78;
     glass.transparent = true;
   }
   if (text) {
