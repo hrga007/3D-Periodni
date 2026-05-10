@@ -243,29 +243,6 @@ function makeGlassMaterial(catKey) {
   const fullColor = new THREE.Color(cat.color);
   // Boost saturacije: u HSL prostoru
   const hsl = { h:0, s:0, l:0 }; fullColor.getHSL(hsl);
-codex/change-periodic-table-to-transparent-look-e86557
-  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.28), Math.min(0.68, hsl.l * 1.05));
-
-  return new THREE.MeshPhysicalMaterial({
-    color: fullColor,
-    emissive: fullColor.clone().multiplyScalar(0.42),
-    emissiveIntensity: 0.2,     // vraća boju kartici bez mliječnog filla
-    transparent: true,
-    opacity: 0.31,              // više boje u staklu, i dalje prozirno
-    roughness: 0.028,
-    metalness: 0.0,
-    transmission: 0.94,
-    thickness: 0.34,
-    attenuationDistance: 1.9,
-    attenuationColor: fullColor.clone().lerp(new THREE.Color(0xffffff), 0.32),
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.012,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-    envMapIntensity: 2.25,
-    ior: 1.48,
-    reflectivity: 0.82
-=======
   fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.15), Math.min(0.55, hsl.l * 0.95));
 
   return new THREE.MeshPhysicalMaterial({
@@ -287,7 +264,6 @@ codex/change-periodic-table-to-transparent-look-e86557
     envMapIntensity: 1.9,
     ior: 1.46,
     reflectivity: 0.78
-main
   });
 }
 
@@ -355,12 +331,12 @@ function makeTextOverlayTexture(el) {
 
   const core = new THREE.Color(cat.color);
   core.getHSL(hsl);
-  core.setHSL(hsl.h, Math.min(1, hsl.s * 0.78), 0.9);
+  core.setHSL(hsl.h, Math.min(1, hsl.s * 0.45), 0.96);
   const coreHex = '#' + core.getHexString();
 
   // Helper: neon-tube tekst (više slojeva glow + svijetla jezgra)
   function drawNeon(text, x, y, fontStr, opts) {
-    const o = Object.assign({ outerBlur: 16, midBlur: 7, innerBlur: 2 }, opts || {});
+    const o = Object.assign({ outerBlur: 26, midBlur: 12, innerBlur: 4 }, opts || {});
     ctx.font = fontStr;
     ctx.lineJoin = 'round';
 
@@ -380,8 +356,8 @@ function makeTextOverlayTexture(el) {
     // 3. Tanki tamni rub za čitljivost protiv staklene boje
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur  = 0;
-    ctx.strokeStyle = 'rgba(2,10,26,0.72)';
-    ctx.lineWidth   = 1.3;
+    ctx.strokeStyle = 'rgba(0,12,28,0.55)';
+    ctx.lineWidth   = 2.2;
     ctx.strokeText(text, x, y);
 
     // 4. Sjajna jezgra slova (gotovo bijelo s tonom kategorije)
@@ -399,25 +375,25 @@ function makeTextOverlayTexture(el) {
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   drawNeon(el.n.toString(), 38, 38,
     '600 48px "JetBrains Mono", "Consolas", monospace',
-    { outerBlur: 10, midBlur: 4, innerBlur: 1.5 });
+    { outerBlur: 18, midBlur: 8, innerBlur: 3 });
 
   // === Simbol — veliko, centrirano ===
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   drawNeon(el.s, 256, 256,
     '700 220px "Sora", "Segoe UI", sans-serif',
-    { outerBlur: 22, midBlur: 10, innerBlur: 2.5 });
+    { outerBlur: 42, midBlur: 20, innerBlur: 6 });
 
   // === Naziv — ispod simbola ===
   ctx.textBaseline = 'alphabetic';
   const nSz = el.name.length > 9 ? 32 : el.name.length > 6 ? 38 : 44;
   drawNeon(el.name, 256, 410,
     `600 ${nSz}px "Sora", "Segoe UI", sans-serif`,
-    { outerBlur: 12, midBlur: 6, innerBlur: 1.8 });
+    { outerBlur: 24, midBlur: 11, innerBlur: 4 });
 
   // === Atomska masa — dno ===
   drawNeon(el.m.toString(), 256, 466,
     '500 30px "JetBrains Mono", "Consolas", monospace',
-    { outerBlur: 9, midBlur: 4, innerBlur: 1.3 });
+    { outerBlur: 16, midBlur: 7, innerBlur: 3 });
 
   const tex = new THREE.CanvasTexture(cv);
   tex.encoding   = THREE.sRGBEncoding;
@@ -448,13 +424,8 @@ function setCardDim(card, dimmed) {
   const glass = card.material;
   const text = card.userData.textMat;
   if (glass) {
-codex/change-periodic-table-to-transparent-look-e86557
-    glass.opacity = dimmed ? 0.06 : 0.31;
-    glass.emissiveIntensity = dimmed ? 0.05 : 0.2;
-=======
     glass.opacity = dimmed ? 0.04 : 0.22;
     glass.emissiveIntensity = dimmed ? 0.025 : 0.12;
-main
     glass.transparent = true;
   }
   if (text) {
