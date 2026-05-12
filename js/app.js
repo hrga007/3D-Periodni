@@ -1341,7 +1341,6 @@ function showActionSheet(element) {
 
   const cat = window.CATEGORIES[element.cat];
   const hex = '#' + cat.color.toString(16).padStart(6, '0');
-  const shells = window.getBohrShells(element.n);
 
   const hints = getDragHints(element.s);
   let hintsHtml = '';
@@ -1370,6 +1369,9 @@ function showActionSheet(element) {
     });
   }
 
+  const mp = element.mp != null ? `${element.mp} °C` : '—';
+  const bp = element.bp != null ? `${element.bp} °C` : '—';
+
   const content = document.getElementById('action-sheet-content');
   if (content) {
     content.innerHTML = `
@@ -1378,12 +1380,22 @@ function showActionSheet(element) {
         <div class="as-info">
           <div class="as-name">${element.name}</div>
           <div class="as-meta">${element.n} · ${cat.name} · ${element.m} u</div>
-          <div class="as-shells">${shells.join(' · ')}</div>
         </div>
       </div>
       <div class="as-actions">
         <button class="as-btn-secondary" onclick="sheetAddToChamber()">✦ Dodaj u komoru</button>
         <button class="as-btn-primary"  onclick="sheetShowAtom()">⚛ Prikaži atom</button>
+      </div>
+      <div class="as-details">
+        <div class="as-detail-grid">
+          <div><label>Talište</label><span>${mp}</span></div>
+          <div><label>Vrelište</label><span>${bp}</span></div>
+          <div><label>Skupina / Per.</label><span>${element.grp} / ${element.per}</span></div>
+          <div><label>Stanje</label><span>${element.phase}</span></div>
+        </div>
+        <div class="as-detail-block"><label>El. konfiguracija</label><code>${element.ec}</code></div>
+        <div class="as-detail-block"><label>Otkriće</label><p>${element.disc}</p></div>
+        <div class="as-detail-block"><label>Primjena</label><p>${element.use}</p></div>
       </div>
       ${hintsHtml}
     `;
@@ -2020,7 +2032,6 @@ function updateInfoPanelAtom(el) {
   const panel=document.getElementById('info-panel'); if(!panel) return;
   const cat=window.CATEGORIES[el.cat];
   const color='#'+cat.color.toString(16).padStart(6,'0');
-  const shells=window.getBohrShells(el.n);
 
   // Mogući spojevi (isto kao u mobile action sheet)
   const hints = getDragHints(el.s);
@@ -2062,7 +2073,6 @@ function updateInfoPanelAtom(el) {
       <div><label>Vrelište</label><span>${el.bp??'—'}${el.bp!=null?' °C':''}</span></div>
     </div>
     <div class="info-block"><label>El. konfiguracija</label><code>${el.ec}</code></div>
-    <div class="info-block"><label>Ljuske (Bohr)</label><code>${shells.join(' · ')}</code></div>
     <div class="info-block"><label>Otkriće</label><p>${el.disc}</p></div>
     <div class="info-block"><label>Primjena</label><p>${el.use}</p></div>
     ${hintsHtml}
