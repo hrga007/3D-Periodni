@@ -645,61 +645,267 @@ function buildTable() {
 }
 
 // =============================================================
-// ATOM — prikazuje se u chamber sceni
+// ATOM — cinematični Bohrov model
+// Klaster proton/neutron sfera, eliptične orbite, shell labels, starfield
 // =============================================================
+const _SHELL_NAMES = ['K','L','M','N','O','P','Q'];
+
+function _makeStarfield() {
+  const g = new THREE.BufferGeometry();
+  const N = 280;
+  const pts = new Float32Array(N*3);
+  for (let i=0; i<N; i++) {
+    // Random points on sphere of radius 40-60
+    const r = 38 + Math.random() * 22;
+    const t = Math.random() * Math.PI * 2;
+    const u = Math.random() * 2 - 1;
+    const sq = Math.sqrt(1 - u*u);
+    pts[i*3]   = r * sq * Math.cos(t);
+    pts[i*3+1] = r * u;
+    pts[i*3+2] = r * sq * Math.sin(t);
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  const mat = new THREE.PointsMaterial({
+    color: 0xaad6ff, size: 0.18, sizeAttenuation: true,
+    transparent: true, opacity: 0.7, depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  return new THREE.Points(g, mat);
+}
+
+function _makeNucleusCluster(element, nr) {
+  const grp = new THREE.Group();
+  // Procijenjeni broj protona/neutrona vidljivih u klasteru
+  const totalNucleons = Math.min(14, Math.max(3, Math.round(Math.log(element.n + 1) * 4)));
+  const protonRatio = element.n / Math.max(element.m, element.n + 1);
+
+  for (let i = 0; i < totalNucleons; i++) {
+    const isProton = i < Math.round(totalNucleons * protonRatio);
+    const c  = isProton ? 0xff7aa8 : 0xc7a3ff;  // pink protoni, ljubicasti neutroni
+    const ec = isProton ? 0xff4080 : 0x9050ff;
+    const r  = nr * 0.30;
+
+    // Pozicije: random raspored unutar manje kugle
+    const phi = Math.acos(2 * Math.random() - 1);
+    const theta = Math.random() * Math.PI * 2;
+    const rad = nr * 0.55 * Math.cbrt(Math.random());
+
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(r, 24, 24),
+      new THREE.MeshPhysicalMaterial({
+        color: c, emissive: ec, emissiveIntensity: 0.5,
+        roughness: 0.18, metalness: 0.0,
+        clearcoat: 1.0, clearcoatRoughness: 0.05
+      })
+    );
+    m.position.set(
+      rad * Math.sin(phi) * Math.cos(theta),
+      rad * Math.sin(phi) * Math.sin(theta),
+      rad * Math.cos(phi)
+    );
+    grp.add(m);
+  }
+
+  // Vanjska translucentna envelope sfera (pink glow oblak)
+  const envelope = new THREE.Mesh(
+    new THREE.SphereGeometry(nr * 1.05, 48, 48),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xff6090, emissive: 0xff3070, emissiveIntensity: 0.35,
+      transparent: true, opacity: 0.28,
+      roughness: 0.08, metalness: 0.0,
+      clearcoat: 1.0, clearcoatRoughness: 0.05,
+      side: THREE.FrontSide
+    })
+  );
+  grp.add(envelope);
+
+  // Mekani vanjski halo (BackSide trik)
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(nr * 1.65, 32, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0xff5090, transparent: true, opacity: 0.10,
+      side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  grp.add(halo);
+
+  // Točkasto svjetlo iz jezgre (osvjetljava elektrone u prolazu)
+  const pl = new THREE.PointLight(0xff70a0, 1.4, 12);
+  pl.position.set(0, 0, 0);
+  grp.add(pl);
+
+  grp.userData.envelope = envelope;
+  grp.userData.halo = halo;
+  return grp;
+}
+
+function _makeShellRing(R) {
+  const g = new THREE.Group();
+
+  // Glavna sjajna staza (jaca emisija, dodatni blending)
+  const main = new THREE.Mesh(
+    new THREE.TorusGeometry(R, 0.030, 12, 128),
+    new THREE.MeshBasicMaterial({
+      color: 0x4ad6ff, transparent: true, opacity: 0.55,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  main.rotation.x = Math.PI / 2;
+  g.add(main);
+
+  // Vanjski mekani glow torus
+  const glow = new THREE.Mesh(
+    new THREE.TorusGeometry(R, 0.10, 8, 96),
+    new THREE.MeshBasicMaterial({
+      color: 0x00aaff, transparent: true, opacity: 0.10,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  glow.rotation.x = Math.PI / 2;
+  g.add(glow);
+
+  return g;
+}
+
+function _makeElectron() {
+  const grp = new THREE.Group();
+  // Sjajno jezgrasto tijelo
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(0.14, 24, 24),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xaaeeff, emissive: 0x00d4ff, emissiveIntensity: 2.2,
+      roughness: 0.10, metalness: 0.0,
+      clearcoat: 1.0, clearcoatRoughness: 0.03
+    })
+  );
+  grp.add(core);
+
+  // Bliski halo
+  const halo1 = new THREE.Mesh(
+    new THREE.SphereGeometry(0.26, 20, 20),
+    new THREE.MeshBasicMaterial({
+      color: 0x00d4ff, transparent: true, opacity: 0.32,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  grp.add(halo1);
+
+  // Veci mekani halo
+  const halo2 = new THREE.Mesh(
+    new THREE.SphereGeometry(0.46, 16, 16),
+    new THREE.MeshBasicMaterial({
+      color: 0x4abfff, transparent: true, opacity: 0.12,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  grp.add(halo2);
+
+  grp.userData.core = core;
+  grp.userData.halo1 = halo1;
+  grp.userData.halo2 = halo2;
+  return grp;
+}
+
+function _makeShellLabel(name, n, R) {
+  // Sprite s K/L/M oznakom + n=X — pozicioniran lijevo od ljuske
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 128;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,256,128);
+
+  // Tanka linija (vodilica)
+  ctx.strokeStyle = 'rgba(170, 220, 255, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(64, 64); ctx.lineTo(248, 64);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Tocka na kraju
+  ctx.fillStyle = '#aadcff';
+  ctx.beginPath(); ctx.arc(252, 64, 3.5, 0, Math.PI*2); ctx.fill();
+
+  // K/L/M oznaka
+  ctx.font = '700 56px "Sora", "Segoe UI", sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(120, 200, 255, 0.85)';
+  ctx.shadowBlur = 14;
+  ctx.fillText(name, 56, 50);
+
+  // n=X
+  ctx.shadowBlur = 6;
+  ctx.font = '400 26px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#aadcff';
+  ctx.fillText('n=' + n, 56, 92);
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.encoding = THREE.sRGBEncoding;
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(2.6, 1.3, 1);
+  sp.position.set(-R - 2.1, R * 0.45, 0);
+  return sp;
+}
+
 function showAtom(element) {
   clearChamberScene(); chamberMode = 'atom';
 
   const grp = new THREE.Group(); grp.name = 'atomGroup';
   const nr  = Math.max(.55, Math.log(element.n + 1) * .32);
 
-  const nucleus = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(nr, 3),
-    new THREE.MeshStandardMaterial({ color:0xff5566, emissive:0xff2233, emissiveIntensity:.55, roughness:.25, metalness:.3 })
-  );
+  // Starfield kao pozadina (parent = grp da se ne pomice s rotacijom kartice ali da prati clear)
+  const stars = _makeStarfield();
+  grp.add(stars);
+
+  // Jezgra: klaster proton/neutron sfera u glowy oblaku
+  const nucleus = _makeNucleusCluster(element, nr);
   grp.add(nucleus);
-  grp.add(new THREE.Mesh(
-    new THREE.SphereGeometry(nr*1.45,32,32),
-    new THREE.MeshBasicMaterial({ color:0xff6677, transparent:true, opacity:.18, side:THREE.BackSide })
-  ));
 
   const shells = window.getBohrShells(element.n);
   const shellGroups = [];
+  const labelGroups = [];
   shells.forEach((count, si) => {
-    const R  = nr + 1.6 + si * 1.4;
+    const R  = nr + 1.7 + si * 1.5;
     const sg = new THREE.Group();
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(R, .022, 8, 96),
-      new THREE.MeshBasicMaterial({ color:0x00d4ff, transparent:true, opacity:.28 })
-    );
-    ring.rotation.x = Math.PI / 2; sg.add(ring);
+
+    // Sjajni torus prsten s vanjskim glowom
+    const ring = _makeShellRing(R);
+    sg.add(ring);
+
+    // Elektroni razmjesteni po prstenu
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2;
-      const e = new THREE.Mesh(
-        new THREE.SphereGeometry(.13,16,16),
-        new THREE.MeshStandardMaterial({ color:0x00e5ff, emissive:0x00d4ff, emissiveIntensity:1.3 })
-      );
-      e.position.set(Math.cos(a)*R, 0, Math.sin(a)*R);
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(.24,16,16),
-        new THREE.MeshBasicMaterial({ color:0x00d4ff, transparent:true, opacity:.28 })
-      );
-      glow.position.copy(e.position); sg.add(e); sg.add(glow);
+      const e = _makeElectron();
+      e.position.set(Math.cos(a) * R, 0, Math.sin(a) * R);
+      sg.add(e);
     }
-    sg.rotation.x = si*.5-.3; sg.rotation.z = si*.4;
-    sg.userData.rotSpeed = .7 - si*.08;
-    grp.add(sg); shellGroups.push(sg);
+
+    sg.rotation.x = si * 0.5 - 0.3;
+    sg.rotation.z = si * 0.4;
+    sg.userData.rotSpeed = .7 - si * .08;
+    grp.add(sg);
+    shellGroups.push(sg);
+
+    // Shell label (K/L/M…) kao Sprite — ne rotira s ljuskom
+    const labelName = _SHELL_NAMES[si] || ('Q' + (si - 6));
+    const labelSprite = _makeShellLabel(labelName, si + 1, R);
+    grp.add(labelSprite);
+    labelGroups.push(labelSprite);
   });
 
-  grp.userData.shells  = shellGroups;
-  grp.userData.nucleus = nucleus;
-  grp.userData.isAtom  = true;
-  grp.userData.element = element;
+  grp.userData.shells   = shellGroups;
+  grp.userData.labels   = labelGroups;
+  grp.userData.nucleus  = nucleus;
+  grp.userData.isAtom   = true;
+  grp.userData.element  = element;
 
   chamberScene.add(grp); chamberObject = grp;
 
   const camDist = Math.max(8, 4.5 + shells.length * 2.2);
-  chamberCamera.position.set(0, 0, camDist);
+  chamberCamera.position.set(0, 0.5, camDist);
   chamberCamera.lookAt(0, 0, 0);
 
   setChamberLabel(element.s, element.name);
@@ -723,15 +929,36 @@ function showCompound(compound) {
     const ed = window.ELEMENTS.find(e => e.s === a.el);
     const ar = Math.max(.32, Math.log((ed?.n || 1)+1)*.22);
     const ac = ed?.color || 0xffffff;
+
+    // Glossy atom (kristalna kuglica s clearcoat-om)
     const atom = new THREE.Mesh(
-      new THREE.SphereGeometry(ar,32,32),
-      new THREE.MeshStandardMaterial({ color:ac, roughness:.3, metalness:.5, emissive:ac, emissiveIntensity:.22 })
+      new THREE.SphereGeometry(ar, 40, 40),
+      new THREE.MeshPhysicalMaterial({
+        color: ac, emissive: ac, emissiveIntensity: 0.18,
+        roughness: 0.15, metalness: 0.1,
+        clearcoat: 1.0, clearcoatRoughness: 0.03,
+        envMapIntensity: 1.2
+      })
     );
     atom.position.fromArray(a.pos);
+
+    // Bliski halo (rim glow)
     atom.add(new THREE.Mesh(
-      new THREE.SphereGeometry(ar*1.38,32,32),
-      new THREE.MeshBasicMaterial({ color:ac, transparent:true, opacity:.14, side:THREE.BackSide })
+      new THREE.SphereGeometry(ar*1.32, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: ac, transparent: true, opacity: 0.18,
+        side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false
+      })
     ));
+    // Veci mekani halo
+    atom.add(new THREE.Mesh(
+      new THREE.SphereGeometry(ar*1.85, 24, 24),
+      new THREE.MeshBasicMaterial({
+        color: ac, transparent: true, opacity: 0.08,
+        side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    ));
+
     grp.add(atom); atomMeshes.push(atom);
     const sp = makeTextSprite(a.el, .5);
     sp.position.copy(atom.position); sp.position.y += ar + .35;
@@ -846,7 +1073,15 @@ function animate() {
 
   if (chamberObject?.userData.isAtom) {
     chamberObject.userData.shells?.forEach(s=>{s.rotation.y+=dt*(s.userData.rotSpeed||.5);});
-    if (chamberObject.userData.nucleus) chamberObject.userData.nucleus.rotation.y+=dt*.3;
+    if (chamberObject.userData.nucleus) {
+      chamberObject.userData.nucleus.rotation.y += dt * 0.3;
+      // Suptilan pulse jezgrenog haloa
+      const pulse = 1.0 + Math.sin(t * 1.6) * 0.05;
+      const halo = chamberObject.userData.nucleus.userData.halo;
+      const env  = chamberObject.userData.nucleus.userData.envelope;
+      if (halo) halo.scale.setScalar(pulse);
+      if (env)  env.scale.setScalar(1.0 + Math.sin(t * 2.1) * 0.025);
+    }
   }
   if (chamberObject?.userData.isCompound) {
     chamberObject.rotation.y+=dt*.28;
