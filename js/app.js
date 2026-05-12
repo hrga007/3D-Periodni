@@ -203,36 +203,81 @@ function setChamberLabel(formula, name) {
 }
 
 // =============================================================
-// GLASS GEOMETRY — zaobljeni ekstrudirani box (smooth silueta)
+// GLASS GEOMETRY — kristalni "framed" izgled
+// Vanjski ekstrudirani okvir s rupom (bezel) + utopljena unutarnja plocica
 // =============================================================
-let _sharedGlassGeo = null;
-function getGlassGeometry() {
-  if (_sharedGlassGeo) return _sharedGlassGeo;
-  const w = CARD_SIZE, h = CARD_SIZE, d = 0.18, r = 0.18;
-  const shape = new THREE.Shape();
+function _roundedRectShape(w, h, r) {
+  const s = new THREE.Shape();
   const x = -w / 2, y = -h / 2;
-  shape.moveTo(x + r, y);
-  shape.lineTo(x + w - r, y);
-  shape.quadraticCurveTo(x + w, y, x + w, y + r);
-  shape.lineTo(x + w, y + h - r);
-  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  shape.lineTo(x + r, y + h);
-  shape.quadraticCurveTo(x, y + h, x, y + h - r);
-  shape.lineTo(x, y + r);
-  shape.quadraticCurveTo(x, y, x + r, y);
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r);
+  s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h);
+  s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r);
+  s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+function _roundedRectPath(w, h, r) {
+  const p = new THREE.Path();
+  const x = -w / 2, y = -h / 2;
+  p.moveTo(x + r, y);
+  p.lineTo(x + w - r, y);
+  p.quadraticCurveTo(x + w, y, x + w, y + r);
+  p.lineTo(x + w, y + h - r);
+  p.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  p.lineTo(x + r, y + h);
+  p.quadraticCurveTo(x, y + h, x, y + h - r);
+  p.lineTo(x, y + r);
+  p.quadraticCurveTo(x, y, x + r, y);
+  return p;
+}
 
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: d,
+let _sharedFrameGeo = null;
+function getGlassFrameGeometry() {
+  if (_sharedFrameGeo) return _sharedFrameGeo;
+  const w = CARD_SIZE, h = CARD_SIZE, r = 0.20;
+  const inset = 0.16;
+  const iw = w - 2*inset, ih = h - 2*inset, ir = 0.13;
+
+  const outer = _roundedRectShape(w, h, r);
+  outer.holes.push(_roundedRectPath(iw, ih, ir));
+
+  const geo = new THREE.ExtrudeGeometry(outer, {
+    depth: 0.24,
     bevelEnabled: true,
-    bevelThickness: 0.025,
-    bevelSize: 0.025,
-    bevelSegments: 4,
-    curveSegments: 10
+    bevelThickness: 0.06,
+    bevelSize: 0.045,
+    bevelSegments: 6,
+    curveSegments: 14
   });
-  geo.translate(0, 0, -d / 2 - 0.025); // centar na Z osi
-  _sharedGlassGeo = geo;
+  geo.translate(0, 0, -0.15);
+  _sharedFrameGeo = geo;
   return geo;
 }
+
+let _sharedPlateGeo = null;
+function getGlassPlateGeometry() {
+  if (_sharedPlateGeo) return _sharedPlateGeo;
+  const w = CARD_SIZE - 0.06, h = CARD_SIZE - 0.06, r = 0.17;
+  const shape = _roundedRectShape(w, h, r);
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.08,
+    bevelEnabled: true,
+    bevelThickness: 0.015,
+    bevelSize: 0.012,
+    bevelSegments: 3,
+    curveSegments: 10
+  });
+  geo.translate(0, 0, -0.30);
+  _sharedPlateGeo = geo;
+  return geo;
+}
+
+// Compat shim — staro ime se referencira drugdje? (samo buildTable)
+function getGlassGeometry() { return getGlassFrameGeometry(); }
 
 // =============================================================
 // GLASS MATERIAL — vibrant neon iridescent crystal
@@ -241,25 +286,25 @@ function getGlassGeometry() {
 function makeGlassMaterial(catKey) {
   const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
   const fullColor = new THREE.Color(cat.color);
-  // Dubok, tamno-zasićeni ton — kao staklo s dubokom tintom (ne razrjeđuje se s env mapom)
+  // Duboki tinitirani ton — staklo s bojom, ali dovoljno tamno da refleksije ne ispiraju
   const hsl = { h:0, s:0, l:0 }; fullColor.getHSL(hsl);
-  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.25), Math.min(0.18, hsl.l * 0.35));
+  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.15), Math.min(0.22, hsl.l * 0.45));
 
   return new THREE.MeshPhysicalMaterial({
     color: fullColor,
-    emissive: fullColor.clone().multiplyScalar(0.5),
-    emissiveIntensity: 0.18,    // slab unutarnji sjaj — neon tekst dominira
+    emissive: fullColor.clone().multiplyScalar(0.55),
+    emissiveIntensity: 0.22,
     transparent: true,
-    opacity: 0.92,              // skoro neprozirno — eliminira mliječni miks s pozadinom
-    roughness: 0.08,
+    opacity: 0.88,
+    roughness: 0.06,
     metalness: 0.0,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.02,   // oštri highlight rubovi (frame efekt)
+    clearcoatRoughness: 0.015,
     side: THREE.DoubleSide,
     depthWrite: true,
-    envMapIntensity: 0.55,      // znatno niže — refleksije ne ispiru tamnu staklenu boju
-    ior: 1.55,
-    reflectivity: 0.30
+    envMapIntensity: 1.1,        // umjereno — refleksije catch-aju bevel rubove
+    ior: 1.52,
+    reflectivity: 0.45
   });
 }
 
@@ -309,8 +354,85 @@ function createGradientEnvMap() {
 }
 
 // =============================================================
-// TEXT OVERLAY — NEON TUBE stil (slojeviti glow u boji kategorije)
-// Tekst sjaji poput neonskog plinskog svjetla unutar stakla
+// 3D EXTRUDED TEXT — slova kao istisnuti kristal (dijele materijal s okvirom)
+// =============================================================
+function _sanitizeForFont(str) {
+  return String(str)
+    .replace(/š/g, 's').replace(/Š/g, 'S')
+    .replace(/č/g, 'c').replace(/Č/g, 'C')
+    .replace(/ć/g, 'c').replace(/Ć/g, 'C')
+    .replace(/ž/g, 'z').replace(/Ž/g, 'Z')
+    .replace(/đ/g, 'dj').replace(/Đ/g, 'Dj');
+}
+
+function _make3DText(text, size, material, opts) {
+  const o = Object.assign({ depth: 0.04, bevelThickness: 0.008, bevelSize: 0.006 }, opts || {});
+  const safe = _sanitizeForFont(text);
+  const geo = new THREE.TextGeometry(safe, {
+    font: window._threeFont,
+    size: size,
+    height: o.depth,
+    curveSegments: 5,
+    bevelEnabled: true,
+    bevelThickness: o.bevelThickness,
+    bevelSize: o.bevelSize,
+    bevelSegments: 2,
+    bevelOffset: 0
+  });
+  geo.computeBoundingBox();
+  return { geo, bb: geo.boundingBox };
+}
+
+function makeText3DGroup(el, material) {
+  const grp = new THREE.Group();
+  if (!window._threeFont) return grp; // font nije učitan — vraćamo praznu grupu
+
+  // Z pozicija: tekst sjedi unutar inset rupe, ispred plate (z=-0.30+0.04) ali iza frame fronta (z=+0.09)
+  const TEXT_Z = -0.05;
+
+  // === Simbol — veliki centrirani ===
+  {
+    const { geo, bb } = _make3DText(el.s, 0.50, material, { depth: 0.07, bevelThickness: 0.012, bevelSize: 0.010 });
+    geo.translate(-(bb.max.x + bb.min.x)/2, -(bb.max.y + bb.min.y)/2, 0);
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(0, 0.05, TEXT_Z);
+    grp.add(m);
+  }
+
+  // === Atomski broj — gore lijevo ===
+  {
+    const { geo, bb } = _make3DText(el.n.toString(), 0.13, material, { depth: 0.035 });
+    geo.translate(-bb.min.x, -bb.max.y, 0);
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(-0.52, 0.52, TEXT_Z);
+    grp.add(m);
+  }
+
+  // === Naziv — ispod simbola ===
+  {
+    const nSz = el.name.length > 9 ? 0.090 : el.name.length > 6 ? 0.108 : 0.130;
+    const { geo, bb } = _make3DText(el.name, nSz, material, { depth: 0.035 });
+    geo.translate(-(bb.max.x + bb.min.x)/2, -bb.max.y, 0);
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(0, -0.30, TEXT_Z);
+    grp.add(m);
+  }
+
+  // === Atomska masa — pri dnu ===
+  {
+    const { geo, bb } = _make3DText(el.m.toString(), 0.085, material, { depth: 0.03 });
+    geo.translate(-(bb.max.x + bb.min.x)/2, -bb.max.y, 0);
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(0, -0.48, TEXT_Z);
+    grp.add(m);
+  }
+
+  return grp;
+}
+
+// =============================================================
+// LEGACY: makeTextOverlayTexture — zadržan radi backward kompatibilnosti
+// (više se ne koristi u buildTable, ali drugi dijelovi koda mogu ga zvati)
 // =============================================================
 function makeTextOverlayTexture(el) {
   const cv = document.createElement('canvas');
@@ -417,16 +539,11 @@ function makeTextMesh(el) {
 // CARD DIM HELPER — koristi se u filter funkcijama
 // =============================================================
 function setCardDim(card, dimmed) {
-  const glass = card.material;
-  const text = card.userData.textMat;
-  if (glass) {
-    glass.opacity = dimmed ? 0.05 : 0.38;
-    glass.emissiveIntensity = dimmed ? 0.04 : 0.30;
-    glass.transparent = true;
-  }
-  if (text) {
-    text.opacity = dimmed ? 0.12 : 1.0;
-  }
+  const glass = card.userData.glassMat || card.material;
+  if (!glass) return;
+  glass.opacity          = dimmed ? 0.06 : 0.88;
+  glass.emissiveIntensity = dimmed ? 0.04 : 0.22;
+  glass.transparent      = true;
 }
 
 function roundRect(ctx,x,y,w,h,r) {
@@ -449,15 +566,27 @@ function shade(hex, lum) {
 // =============================================================
 function buildTable() {
   const grp = new THREE.Group(); grp.name = 'tableGroup';
-  const glassGeo = getGlassGeometry();
+  const frameGeo = getGlassFrameGeometry();
+  const plateGeo = getGlassPlateGeometry();
 
   window.ELEMENTS.forEach(el => {
     const glassMat = makeGlassMaterial(el.cat);
-    const card = new THREE.Mesh(glassGeo, glassMat);
 
-    // Tekst kao child — automatski prati transformacije roditelja (hover, drag)
-    const textMesh = makeTextMesh(el);
-    card.add(textMesh);
+    // Glavna kartica = okvir (catch-a raycast, drži poziciju)
+    const card = new THREE.Mesh(frameGeo, glassMat);
+
+    // Utopljena pločica iza okvira — daje dubinski "pogled u unutra"
+    const plate = new THREE.Mesh(plateGeo, glassMat);
+    card.add(plate);
+
+    // 3D tekst (slova istisnuta iz istog stakla) — fallback na canvas ako font nije učitan
+    let textNode;
+    if (window._threeFont && THREE.TextGeometry) {
+      textNode = makeText3DGroup(el, glassMat);
+    } else {
+      textNode = makeTextMesh(el); // legacy canvas overlay
+    }
+    card.add(textNode);
 
     const x = (el.col - 9.5) * SPACING;
     let   y = -(el.row - 4.5) * SPACING;
@@ -468,8 +597,11 @@ function buildTable() {
     card.userData.element  = el;
     card.userData.isCard   = true;
     card.userData.basePos  = card.position.clone();
-    card.userData.textMat  = textMesh.material;
-    card.userData.textMesh = textMesh;
+    card.userData.glassMat = glassMat;
+    card.userData.textNode = textNode;
+    // Backward-compat aliasi (drugdje se možda referenciraju)
+    card.userData.textMat  = glassMat;
+    card.userData.textMesh = textNode;
 
     grp.add(card);
   });
@@ -1837,12 +1969,29 @@ window.clearMixer      = clearMixer;
 window.clearChamber    = clearChamber;
 window.toggleLegend    = toggleLegend;
 
+// =============================================================
+// 3D FONT — učitava se prije buildTable za TextGeometry kartice
+// =============================================================
+window._threeFont = null;
+function load3DFont() {
+  return new Promise((resolve) => {
+    if (!THREE.FontLoader) return resolve(null);
+    const loader = new THREE.FontLoader();
+    loader.load(
+      'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json',
+      (font) => { window._threeFont = font; resolve(font); },
+      undefined,
+      () => resolve(null)
+    );
+  });
+}
+
 window.addEventListener('load', ()=>{
   if (typeof THREE==='undefined') {
     document.getElementById('loading').textContent='Greška: Three.js se ne učitava.';
     return;
   }
-  // Pričekaj Google Fonts prije buildanja teksture (Sora + JetBrains Mono)
-  const ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-  ready.then(init).catch(() => init());
+  // Pričekaj Google Fonts + 3D typeface prije inicijalizacije
+  const cssFonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  Promise.all([cssFonts, load3DFont()]).then(init).catch(() => init());
 });
