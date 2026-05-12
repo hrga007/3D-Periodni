@@ -283,6 +283,26 @@ function getGlassGeometry() { return getGlassFrameGeometry(); }
 // GLASS MATERIAL — vibrant neon iridescent crystal
 // Pune boje, jaki emissive glow, oštri clearcoat
 // =============================================================
+// =============================================================
+// TEXT MATERIAL — crni obsidian s shimmer efektom
+// Visok clearcoat i lagana metalnost čine slova crnima ali sjajećim
+// =============================================================
+function makeTextMaterial() {
+  return new THREE.MeshPhysicalMaterial({
+    color: 0x080a0e,           // duboka crna s minimalnim plavim tonom
+    emissive: 0x0a0d14,
+    emissiveIntensity: 0.15,
+    roughness: 0.12,           // dovoljno glatko da zrcali highlight-ove
+    metalness: 0.55,           // metalna refleksija → "shimmer"
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.03,  // britki highlight na bridovima slova
+    side: THREE.FrontSide,
+    depthWrite: true,
+    envMapIntensity: 1.8,      // jako catch-anje neon refleksija = shimmer
+    reflectivity: 0.85
+  });
+}
+
 function makeGlassMaterial(catKey) {
   const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
   const fullColor = new THREE.Color(cat.color);
@@ -387,8 +407,8 @@ function makeText3DGroup(el, material) {
   const grp = new THREE.Group();
   if (!window._threeFont) return grp; // font nije učitan — vraćamo praznu grupu
 
-  // Z pozicija: tekst sjedi unutar inset rupe, ispred plate (z=-0.30+0.04) ali iza frame fronta (z=+0.09)
-  const TEXT_Z = -0.05;
+  // Z pozicija: tekst stoji ispred utopljene pločice, izviruje kroz rupu okvira
+  const TEXT_Z = 0.02;
 
   // === Simbol — veliki centrirani ===
   {
@@ -540,10 +560,16 @@ function makeTextMesh(el) {
 // =============================================================
 function setCardDim(card, dimmed) {
   const glass = card.userData.glassMat || card.material;
-  if (!glass) return;
-  glass.opacity          = dimmed ? 0.06 : 0.88;
-  glass.emissiveIntensity = dimmed ? 0.04 : 0.22;
-  glass.transparent      = true;
+  const text  = card.userData.textMat;
+  if (glass) {
+    glass.opacity           = dimmed ? 0.06 : 0.88;
+    glass.emissiveIntensity = dimmed ? 0.04 : 0.22;
+    glass.transparent       = true;
+  }
+  if (text) {
+    text.opacity     = dimmed ? 0.15 : 1.0;
+    text.transparent = true;
+  }
 }
 
 function roundRect(ctx,x,y,w,h,r) {
@@ -571,6 +597,7 @@ function buildTable() {
 
   window.ELEMENTS.forEach(el => {
     const glassMat = makeGlassMaterial(el.cat);
+    const textMat  = makeTextMaterial();
 
     // Glavna kartica = okvir (catch-a raycast, drži poziciju)
     const card = new THREE.Mesh(frameGeo, glassMat);
@@ -579,10 +606,10 @@ function buildTable() {
     const plate = new THREE.Mesh(plateGeo, glassMat);
     card.add(plate);
 
-    // 3D tekst (slova istisnuta iz istog stakla) — fallback na canvas ako font nije učitan
+    // 3D tekst u zasebnom crnom obsidian materijalu (shimmer)
     let textNode;
     if (window._threeFont && THREE.TextGeometry) {
-      textNode = makeText3DGroup(el, glassMat);
+      textNode = makeText3DGroup(el, textMat);
     } else {
       textNode = makeTextMesh(el); // legacy canvas overlay
     }
@@ -598,10 +625,9 @@ function buildTable() {
     card.userData.isCard   = true;
     card.userData.basePos  = card.position.clone();
     card.userData.glassMat = glassMat;
+    card.userData.textMat  = textMat;
     card.userData.textNode = textNode;
-    // Backward-compat aliasi (drugdje se možda referenciraju)
-    card.userData.textMat  = glassMat;
-    card.userData.textMesh = textNode;
+    card.userData.textMesh = textNode; // legacy alias
 
     grp.add(card);
   });
