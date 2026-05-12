@@ -705,6 +705,55 @@ html, body {
 .as-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 .as-shells { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-family: monospace; }
 
+/* Detaljne info na mobilnom (iste informacije kao desktop info panel) */
+.as-details { margin-bottom: 14px; }
+.as-detail-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px 12px; margin-bottom: 10px;
+}
+.as-detail-grid > div {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.10);
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+.as-detail-grid label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.as-detail-grid span {
+  font-size: 13px; font-weight: 600;
+  color: var(--text);
+}
+.as-detail-block {
+  background: rgba(0,212,255,0.03);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 8px;
+  padding: 8px 11px;
+  margin-bottom: 8px;
+}
+.as-detail-block label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.as-detail-block code {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 12px;
+  color: #aadcff;
+}
+.as-detail-block p {
+  font-size: 12px; line-height: 1.45;
+  color: var(--text); margin: 0;
+}
+
 /* Action gumbi */
 .as-actions {
   display: grid; grid-template-columns: 1fr 1fr;
