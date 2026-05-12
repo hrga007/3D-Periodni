@@ -241,25 +241,25 @@ function getGlassGeometry() {
 function makeGlassMaterial(catKey) {
   const cat = window.CATEGORIES[catKey] || window.CATEGORIES.nonmetal;
   const fullColor = new THREE.Color(cat.color);
-  // Boost saturacije: u HSL prostoru
+  // Dubok, tamno-zasićeni ton — kao staklo s dubokom tintom (ne razrjeđuje se s env mapom)
   const hsl = { h:0, s:0, l:0 }; fullColor.getHSL(hsl);
-  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.3), Math.min(0.65, hsl.l * 1.1));
+  fullColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.25), Math.min(0.18, hsl.l * 0.35));
 
   return new THREE.MeshPhysicalMaterial({
     color: fullColor,
-    emissive: fullColor.clone().multiplyScalar(0.65),
-    emissiveIntensity: 0.30,    // suptilniji unutarnji glow (tekst sjaji)
+    emissive: fullColor.clone().multiplyScalar(0.5),
+    emissiveIntensity: 0.18,    // slab unutarnji sjaj — neon tekst dominira
     transparent: true,
-    opacity: 0.38,              // staklenije, više providnosti
-    roughness: 0.02,            // mirror-smooth
+    opacity: 0.92,              // skoro neprozirno — eliminira mliječni miks s pozadinom
+    roughness: 0.08,
     metalness: 0.0,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.015,  // izrazito oštri highlight na rubovima (frame efekt)
+    clearcoatRoughness: 0.02,   // oštri highlight rubovi (frame efekt)
     side: THREE.DoubleSide,
     depthWrite: true,
-    envMapIntensity: 2.6,       // jače refleksije iz neon env mape
+    envMapIntensity: 0.55,      // znatno niže — refleksije ne ispiru tamnu staklenu boju
     ior: 1.55,
-    reflectivity: 0.6
+    reflectivity: 0.30
   });
 }
 
