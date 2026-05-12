@@ -602,6 +602,16 @@ function buildTable() {
     // Glavna kartica = okvir (catch-a raycast, drži poziciju)
     const card = new THREE.Mesh(frameGeo, glassMat);
 
+    // Nevidljivi puni hit-plane: okvir ima rupu u sredini pa raycast inače
+    // promaši kad korisnik klikne na simbol — ovaj plane pokriva cijelu površinu.
+    const hitPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(CARD_SIZE * 1.02, CARD_SIZE * 1.02),
+      new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
+    );
+    hitPlane.position.z = 0.0;
+    hitPlane.userData.hitProxy = true;
+    card.add(hitPlane);
+
     // Utopljena pločica iza okvira — daje dubinski "pogled u unutra"
     const plate = new THREE.Mesh(plateGeo, glassMat);
     card.add(plate);
@@ -846,26 +856,37 @@ function animate() {
 }
 
 // =============================================================
+// RAYCAST HELPER — walks up parent chain do mesh-a označenog isCard.
+// Potrebno jer su tekst/plate/hit-plane djeca card mesh-a.
+// =============================================================
+function _resolveCardFromHit(hit) {
+  let o = hit && hit.object;
+  while (o && !o.userData?.isCard) o = o.parent;
+  return o || null;
+}
+
+// =============================================================
 // HOVER
 // =============================================================
 function updateHover() {
   if (!currentObject || isDragging) return;
   raycaster.setFromCamera(pointer, camera);
   const cards = currentObject.children.filter(c=>c.userData.isCard);
-  const hits  = raycaster.intersectObjects(cards, false);
+  const hits  = raycaster.intersectObjects(cards, true);
+  const hitCard = hits.length ? _resolveCardFromHit(hits[0]) : null;
 
-  if (hoveredCard && hoveredCard !== hits[0]?.object) {
+  if (hoveredCard && hoveredCard !== hitCard) {
     hoveredCard.position.z = hoveredCard.userData.basePos.z;
     hoveredCard.scale.setScalar(1); hoveredCard = null;
     canvasEl.style.cursor = 'grab';
   }
-  if (hits[0] && hoveredCard !== hits[0].object) {
-    hoveredCard = hits[0].object;
+  if (hitCard && hoveredCard !== hitCard) {
+    hoveredCard = hitCard;
     hoveredCard.position.z = hoveredCard.userData.basePos.z + .55;
     hoveredCard.scale.setScalar(1.13);
     canvasEl.style.cursor = 'pointer';
     showHoverTooltip(hoveredCard.userData.element);
-  } else if (!hits[0]) { hideHoverTooltip(); }
+  } else if (!hitCard) { hideHoverTooltip(); }
 }
 
 // =============================================================
@@ -895,8 +916,9 @@ function getCardAtPointer(cx,cy) {
     new THREE.Vector2(((cx-rect.left)/rect.width)*2-1, -((cy-rect.top)/rect.height)*2+1),
     camera
   );
-  const hits = raycaster.intersectObjects(currentObject.children.filter(c=>c.userData.isCard), false);
-  return hits.length ? hits[0].object.userData.element : null;
+  const hits = raycaster.intersectObjects(currentObject.children.filter(c=>c.userData.isCard), true);
+  const card = hits.length ? _resolveCardFromHit(hits[0]) : null;
+  return card ? card.userData.element : null;
 }
 
 // Projekcija 3D kartice na 2D ekran
