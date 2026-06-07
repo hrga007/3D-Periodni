@@ -28,6 +28,8 @@ let mixer = [];
 
 // ── Mobile ───────────────────────────────────────────────────
 let isMobile = false;
+let renderMode = 'desktop';   // 'mobile' | 'desktop' — fiksiran pri initu
+let _reloading = false;
 let chamberState = 'standard';
 let activeCategory = null;
 let chamberTranslateY = 0; // px, 0 = fully expanded
@@ -44,9 +46,32 @@ function init() {
   canvasWrap = document.querySelector('.canvas-wrap');
 
   checkMobile();
+  renderMode = isMobile ? 'mobile' : 'desktop';
   periodScanEl = document.getElementById('period-scan');
 
-  // ── Glavna scena ──────────────────────────────────────────
+  // ── Periodni sustav ───────────────────────────────────────
+  // Mobilno: nativna 2D mreža (bez WebGL-a, čitljivo, štedi GPU/bateriju).
+  // Desktop: 3D Three.js scena.
+  if (isMobile) {
+    buildTable2D();
+  } else {
+    initMainScene();
+  }
+
+  // Chamber renderer se inicijalizira lijeno (ensureChamberRenderer)
+  // pri prvom korištenju → na mobilnom nula WebGL konteksta u mirovanju.
+  setupUI();
+  setupListeners();
+  setupChamberSwipe();
+  initMagicChamber();
+  initChamberTransform();
+  animate();
+  hideLoading();
+  if (isMobile) initOnboarding();
+}
+
+// Glavna 3D scena periodnog sustava — samo na desktopu.
+function initMainScene() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x06081a);
   scene.fog = new THREE.Fog(0x06081a, 35, 110);
@@ -83,15 +108,82 @@ function init() {
   pointer   = new THREE.Vector2(-9999, -9999);
 
   buildTable();
-  initChamberRenderer();
-  setupUI();
-  setupListeners();
-  setupChamberSwipe();
-  initMagicChamber();
-  initChamberTransform();
-  animate();
-  hideLoading();
-  if (isMobile) initOnboarding();
+}
+
+// =============================================================
+// 2D PERIODNI SUSTAV (mobilno) — nativna CSS Grid mreža
+// =============================================================
+function buildTable2D() {
+  const host = document.getElementById('ptable-2d');
+  if (!host) return;
+  host.hidden = false;
+  host.innerHTML = window.ELEMENTS.map(el => {
+    const cat = window.CATEGORIES[el.cat] || window.CATEGORIES.nonmetal;
+    const hex = '#' + cat.color.toString(16).padStart(6, '0');
+    // row 1-7 = periodi; row 9/10 = lantanoidi/aktinoidi (red 8 ostaje prazan razmak)
+    return `<button class="pt-tile" type="button" data-n="${el.n}"
+        style="grid-column:${el.col}; grid-row:${el.row}; --tile:${hex}">
+        <span class="pt-n">${el.n}</span>
+        <span class="pt-sym">${el.s}</span>
+        <span class="pt-name">${el.name}</span>
+      </button>`;
+  }).join('');
+
+  // Jedan delegirani listener za sve pločice
+  host.addEventListener('click', e => {
+    const tile = e.target.closest('.pt-tile');
+    if (!tile) return;
+    const el = window.ELEMENTS.find(x => x.n === +tile.dataset.n);
+    if (!el) return;
+    const r = tile.getBoundingClientRect();
+    showTapSpotlight(r.left + r.width / 2, r.top + r.height / 2, el);
+    showActionSheet(el);
+  });
+}
+
+// =============================================================
+// VIEWPORT-AGNOSTIČNI HELPERI
+// Iteriraju 2D pločice (mobilno) ili 3D kartice (desktop).
+// =============================================================
+function forEachTile(cb) {
+  if (isMobile) {
+    document.querySelectorAll('#ptable-2d .pt-tile').forEach(dom => {
+      const el = window.ELEMENTS.find(x => x.n === +dom.dataset.n);
+      if (el) cb({ el, dom });
+    });
+  } else if (currentObject) {
+    currentObject.children.forEach(card => {
+      if (!card.userData.isCard) return;
+      cb({ el: card.userData.element, card });
+    });
+  }
+}
+
+function dimEntry(entry, dimmed, scale) {
+  if (entry.card) {
+    setCardDim(entry.card, dimmed);
+    if (scale != null) entry.card.scale.setScalar(scale);
+  } else if (entry.dom) {
+    entry.dom.classList.toggle('dimmed', dimmed);
+  }
+}
+
+// Točan multiset-match mixera protiv baze spojeva (dijeljeno).
+function findExactCompound() {
+  if (mixer.length < 1) return null;
+  const ingr = {};
+  mixer.forEach(s => { ingr[s] = (ingr[s] || 0) + 1; });
+  const keys = Object.keys(ingr);
+  return window.COMPOUNDS.find(c => {
+    const ck = Object.keys(c.ingredients);
+    if (ck.length !== keys.length) return false;
+    return keys.every(k => c.ingredients[k] === ingr[k]);
+  }) || null;
+}
+
+// Lijena inicijalizacija chamber renderera (jedini WebGL kontekst na mobu).
+function ensureChamberRenderer() {
+  if (!chamberRenderer) initChamberRenderer();
 }
 
 function addDirLight(sc, color, intensity, x, y, z) {
@@ -851,6 +943,7 @@ function _makeShellLabel(name, n, R) {
 }
 
 function showAtom(element) {
+  ensureChamberRenderer();
   clearChamberScene(); chamberMode = 'atom';
 
   const grp = new THREE.Group(); grp.name = 'atomGroup';
@@ -919,6 +1012,7 @@ function showAtom(element) {
 // SPOJ
 // =============================================================
 function showCompound(compound) {
+  ensureChamberRenderer();
   clearChamberScene(); chamberMode = 'compound';
 
   const grp = new THREE.Group(); grp.name = 'compoundGroup';
@@ -1066,10 +1160,14 @@ function updateCameraAnim() {
 function animate() {
   requestAnimationFrame(animate);
   const dt=clock.getDelta(), t=clock.getElapsedTime();
-  updateCameraAnim();
-  updateHover();
-  controls.update();
-  renderer.render(scene, camera);
+
+  // Glavna 3D scena postoji samo na desktopu
+  if (renderer) {
+    updateCameraAnim();
+    updateHover();
+    controls.update();
+    renderer.render(scene, camera);
+  }
 
   if (chamberObject?.userData.isAtom) {
     chamberObject.userData.shells?.forEach(s=>{s.rotation.y+=dt*(s.userData.rotSpeed||.5);});
@@ -1087,7 +1185,8 @@ function animate() {
     chamberObject.rotation.y+=dt*.28;
     (chamberObject.userData.miniAtoms||[]).forEach(m=>{m.rotation.y+=dt*(m.userData.rotSpeed||1);});
   }
-  if (chamberRenderer) chamberRenderer.render(chamberScene, chamberCamera);
+  // Renderiraj komoru samo kad ima sadržaj (ušteda GPU/baterije)
+  if (chamberRenderer && chamberObject) chamberRenderer.render(chamberScene, chamberCamera);
 }
 
 // =============================================================
@@ -1156,8 +1255,17 @@ function getCardAtPointer(cx,cy) {
   return card ? card.userData.element : null;
 }
 
-// Projekcija 3D kartice na 2D ekran
+// Projekcija pozicije elementa na 2D ekran (za fly animaciju)
 function getCardScreenPos(element) {
+  // Mobilno: centar DOM pločice
+  if (isMobile) {
+    const tile = document.querySelector(`#ptable-2d .pt-tile[data-n="${element.n}"]`);
+    if (tile) {
+      const r = tile.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+    return null;
+  }
   if (!currentObject || !canvasEl) return null;
   const card = currentObject.children.find(c => c.userData.element?.n === element.n);
   if (!card) return null;
@@ -1451,8 +1559,33 @@ window.sheetAddMissing = function(missingJson) {
 // PERIOD QUICK-JUMP
 // =============================================================
 window.jumpToPeriod = function(p) {
-  if (!currentObject) return;
   haptic('light');
+
+  // Highlight period pill u control railu
+  document.querySelectorAll('.period-pill').forEach((btn, i) => {
+    btn.classList.toggle('active', i + 1 === p);
+  });
+  setTimeout(() => document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active')), 1400);
+
+  // Mobilno: skrol + pulse reda u 2D mreži (bez kamere)
+  if (isMobile) {
+    let first = null;
+    forEachTile(entry => {
+      const inPeriod = entry.el.per === p;
+      if (!entry.dom) return;
+      entry.dom.classList.toggle('pulse', inPeriod);
+      entry.dom.classList.toggle('dimmed', !inPeriod);
+      if (inPeriod && !first) first = entry.dom;
+    });
+    first?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => forEachTile(entry => {
+      entry.dom?.classList.remove('pulse');
+      entry.dom?.classList.remove('dimmed');
+    }), 1300);
+    return;
+  }
+
+  if (!currentObject) return;
 
   const periodCards = currentObject.children.filter(c => c.userData.isCard && c.userData.element?.per === p);
   if (!periodCards.length) return;
@@ -1464,12 +1597,6 @@ window.jumpToPeriod = function(p) {
     new THREE.Vector3(0, avgY, dist),
     new THREE.Vector3(0, avgY, 0)
   );
-
-  // Highlight period pill u control railu
-  document.querySelectorAll('.period-pill').forEach((btn, i) => {
-    btn.classList.toggle('active', i + 1 === p);
-  });
-  setTimeout(() => document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active')), 1400);
 
   // Scan-line efekt: projectira Y poziciju perioda na ekran
   if (periodScanEl && canvasEl) {
@@ -1534,12 +1661,9 @@ window.toggleCategory = function(cat) {
 };
 
 function applyCardFilter() {
-  if (!currentObject) return;
-  currentObject.children.forEach(card => {
-    if (!card.userData.isCard) return;
-    const match = !activeCategory || card.userData.element.cat === activeCategory;
-    setCardDim(card, !match);
-    card.scale.setScalar(match ? 1 : 0.9);
+  forEachTile(entry => {
+    const match = !activeCategory || entry.el.cat === activeCategory;
+    dimEntry(entry, !match, match ? 1 : 0.9);
   });
 }
 
@@ -1808,6 +1932,7 @@ function animateDrop(element, fromX, fromY, onComplete) {
 // =============================================================
 function addToMixerInternal(symbol) {
   if (mixer.length>=12) { showMessage('Komora je puna! Max 12 atoma.','warn'); return; }
+  ensureChamberRenderer();
   mixer.push(symbol); renderMixer();
   updateElementGlowFilter();
   setTimeout(()=>autoTryFormCompound(),350);
@@ -1815,6 +1940,7 @@ function addToMixerInternal(symbol) {
 
 function addToMixer(symbol) {
   if (mixer.length>=12) { showMessage('Komora je puna!','warn'); return; }
+  ensureChamberRenderer();
   mixer.push(symbol); renderMixer();
   triggerMistBurst(false);
   updateElementGlowFilter();
@@ -1846,39 +1972,24 @@ function canElementContribute(symbol, mixerCounts) {
 }
 
 function updateElementGlowFilter() {
-  if (!currentObject) return;
-
   if (mixer.length === 0) {
     // Mixer prazan → vrati sve na normalno
-    currentObject.children.forEach(card => {
-      if (!card.userData.isCard) return;
-      setCardDim(card, false);
-      card.scale.setScalar(1);
-    });
+    forEachTile(entry => dimEntry(entry, false, 1));
     return;
   }
 
   const mixerCounts = {};
   mixer.forEach(s => { mixerCounts[s] = (mixerCounts[s] || 0) + 1; });
 
-  currentObject.children.forEach(card => {
-    if (!card.userData.isCard) return;
-    const sym = card.userData.element.s;
-    const can = canElementContribute(sym, mixerCounts);
-    setCardDim(card, !can);
-    card.scale.setScalar(can ? 1 : 0.88);
+  forEachTile(entry => {
+    const can = canElementContribute(entry.el.s, mixerCounts);
+    dimEntry(entry, !can, can ? 1 : 0.88);
   });
 }
 
 function autoTryFormCompound() {
   if (mixer.length<2) return;
-  const ingr={};
-  mixer.forEach(s=>{ingr[s]=(ingr[s]||0)+1;});
-  const match=window.COMPOUNDS.find(c=>{
-    const k1=Object.keys(c.ingredients).sort(), k2=Object.keys(ingr).sort();
-    if (k1.length!==k2.length||!k1.every((k,i)=>k===k2[i])) return false;
-    return k1.every(k=>c.ingredients[k]===ingr[k]);
-  });
+  const match = findExactCompound();
   if (match) triggerCompoundEffect(()=>{
     showCompound(match);
     showMessage('✨ Spoj nastao: '+match.formula+' – '+match.name,'magic');
@@ -1889,8 +2000,13 @@ function autoTryFormCompound() {
 function renderMixer() {
   const el=document.getElementById('mixer-items');
   const hint=document.getElementById('drop-hint');
+  const cta=document.getElementById('mixer-cta');
   if (!el) return;
-  if (mixer.length===0) { el.innerHTML=''; hint?.classList.remove('hidden'); return; }
+  if (mixer.length===0) {
+    el.innerHTML=''; hint?.classList.remove('hidden');
+    cta?.classList.remove('visible');
+    return;
+  }
   hint?.classList.add('hidden');
   el.innerHTML=mixer.map((s,i)=>{
     const ed=window.ELEMENTS.find(e=>e.s===s);
@@ -1898,7 +2014,35 @@ function renderMixer() {
     const c='#'+cat.color.toString(16).padStart(6,'0');
     return `<span class="mixer-chip" style="background:${c}22;border-color:${c}" onclick="removeFromMixer(${i})" title="Ukloni">${s}<small>×</small></span>`;
   }).join('');
+
+  // CTA "Spoji" — vidljiv kad ima ≥2 elementa; označava spreman spoj
+  if (cta) {
+    if (mixer.length >= 2) {
+      cta.classList.add('visible');
+      const ready = !!findExactCompound();
+      cta.classList.toggle('ready', ready);
+      cta.textContent = ready ? '✦ Spoji spoj!' : '✦ Spoji';
+    } else {
+      cta.classList.remove('visible');
+    }
+  }
 }
+
+// Eksplicitni "Spoji" — pokušaj formirati spoj iz trenutnog mixera.
+window.mixerCombine = function() {
+  if (mixer.length < 2) { showMessage('Dodaj barem 2 elementa u komoru.','warn'); return; }
+  const match = findExactCompound();
+  if (match) {
+    if (isMobile && chamberState === 'mini') setChamberState('standard');
+    triggerCompoundEffect(()=>{
+      showCompound(match);
+      showMessage('✨ '+match.formula+' – '+match.name,'magic');
+    });
+  } else {
+    showMessage('Nema poznatog spoja za ovu kombinaciju.','warn');
+    haptic('medium');
+  }
+};
 
 // =============================================================
 // EFEKTI
@@ -2130,24 +2274,26 @@ function setupUI() {
 }
 
 function applySearchFilter(q) {
-  currentObject?.children.forEach(card => {
-    if (!card.userData.isCard) return;
-    const el = card.userData.element;
+  forEachTile(entry => {
+    const el = entry.el;
     const match = !q || el.s.toLowerCase().includes(q) || el.name.toLowerCase().includes(q) || String(el.n) === q;
-    setCardDim(card, !match);
-    card.scale.setScalar(match ? 1 : .92);
+    dimEntry(entry, !match, match ? 1 : .92);
   });
 }
 
 function setupListeners() {
-  canvasEl.addEventListener('pointerdown', onPointerDown, {passive:false});
-  canvasEl.addEventListener('pointermove', onPointerMove, {passive:true});
-  canvasEl.addEventListener('pointerup',   onPointerUp,   {passive:true});
-  canvasEl.addEventListener('pointercancel', cancelDrag,  {passive:true});
-  canvasEl.addEventListener('touchstart',  onPointerDown, {passive:false});
-  canvasEl.addEventListener('touchmove',   onPointerMove, {passive:true});
-  canvasEl.addEventListener('touchend',    onPointerUp,   {passive:true});
-  window.addEventListener('pointerup', e=>{ if(dragState||panState) onPointerUp(e); }, {passive:true});
+  // Canvas geste (hover/pan/drag/long-press) samo na desktopu — uklanja
+  // konflikte gesti na dodirnim uređajima (mobilno koristi tap → action sheet).
+  if (!isMobile && canvasEl) {
+    canvasEl.addEventListener('pointerdown', onPointerDown, {passive:false});
+    canvasEl.addEventListener('pointermove', onPointerMove, {passive:true});
+    canvasEl.addEventListener('pointerup',   onPointerUp,   {passive:true});
+    canvasEl.addEventListener('pointercancel', cancelDrag,  {passive:true});
+    canvasEl.addEventListener('touchstart',  onPointerDown, {passive:false});
+    canvasEl.addEventListener('touchmove',   onPointerMove, {passive:true});
+    canvasEl.addEventListener('touchend',    onPointerUp,   {passive:true});
+    window.addEventListener('pointerup', e=>{ if(dragState||panState) onPointerUp(e); }, {passive:true});
+  }
   window.addEventListener('resize', onResize);
   document.getElementById('btn-clear-chamber')?.addEventListener('click', clearChamber);
 
@@ -2176,9 +2322,20 @@ window.toggleMobileSearch = function() {
 
 function onResize() {
   checkMobile();
-  const w=canvasEl.clientWidth, h=canvasEl.clientHeight;
-  camera.aspect=w/h; camera.updateProjectionMatrix();
-  renderer.setSize(w,h,false);
+
+  // Prijelaz preko granice 900px mijenja način renderiranja (2D ↔ 3D).
+  // Najpouzdanije je ponovno učitati stranicu u ispravnom modu.
+  if (!_reloading && ((isMobile && renderMode === 'desktop') || (!isMobile && renderMode === 'mobile'))) {
+    _reloading = true;
+    location.reload();
+    return;
+  }
+
+  if (renderer && canvasEl) {
+    const w=canvasEl.clientWidth, h=canvasEl.clientHeight;
+    camera.aspect=w/h; camera.updateProjectionMatrix();
+    renderer.setSize(w,h,false);
+  }
 
   if (isMobile) {
     // Recalculate transform on resize (orientation change)
@@ -2284,7 +2441,8 @@ window.addEventListener('load', ()=>{
     document.getElementById('loading').textContent='Greška: Three.js se ne učitava.';
     return;
   }
-  // Pričekaj Google Fonts + 3D typeface prije inicijalizacije
+  // Pričekaj Google Fonts; 3D typeface treba samo desktop (3D kartice)
   const cssFonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-  Promise.all([cssFonts, load3DFont()]).then(init).catch(() => init());
+  const needs3DFont = window.innerWidth > 900;
+  Promise.all([cssFonts, needs3DFont ? load3DFont() : Promise.resolve()]).then(init).catch(() => init());
 });

@@ -14,6 +14,17 @@
   --success: #4ade80;
   --warn: #fbbf24;
   --danger: #f87171;
+
+  /* Responzivna tipografija (fluid clamp) */
+  --fs-tile-sym:  clamp(10px, 2.7vw, 17px);
+  --fs-tile-n:    clamp(6px, 1.5vw, 10px);
+  --fs-tile-name: clamp(6px, 1.3vw, 9px);
+
+  /* Z-index skala (dokumentirana hijerarhija slojeva) */
+  --z-sheet: 50;
+  --z-search: 9000;
+  --z-action-sheet: 9500;
+  --z-onboarding: 10000;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -191,6 +202,64 @@ html, body {
   position:absolute; bottom:12px; left:12px;
   display:flex; flex-direction:column; gap:2px;
   font-size:11px; color:var(--text-muted); pointer-events:none; opacity:.6;
+}
+
+/* ── 2D PERIODNI SUSTAV (mobilno) ─────────────────────────── */
+/* Skriveno na desktopu; aktivira se u @media (max-width:900px). */
+.ptable-2d { display: none; }
+
+.pt-tile {
+  position: relative;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1px; padding: 2px 1px;
+  aspect-ratio: 1; min-width: 0; min-height: 0;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--tile, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--tile, var(--accent)) 16%, var(--bg-1));
+  color: var(--text);
+  font-family: 'Sora', system-ui, sans-serif;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .18s ease, opacity .18s ease;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+.pt-tile::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--tile) 22%, transparent), transparent 60%);
+  pointer-events: none;
+}
+.pt-tile:active {
+  transform: scale(.92);
+  box-shadow: 0 0 14px var(--tile), inset 0 0 8px color-mix(in srgb, var(--tile) 40%, transparent);
+  z-index: 2;
+}
+.pt-tile.dimmed { opacity: .22; }
+.pt-tile.pulse {
+  animation: pt-pulse 1.2s ease-out;
+  box-shadow: 0 0 16px var(--tile);
+  z-index: 3;
+}
+@keyframes pt-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tile) 80%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+.pt-n {
+  font-size: var(--fs-tile-n);
+  line-height: 1; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.pt-sym {
+  font-size: var(--fs-tile-sym);
+  font-weight: 800; line-height: 1;
+  color: var(--tile, var(--text));
+  filter: brightness(1.4);
+}
+.pt-name {
+  display: none; /* prikazano tek na širim ekranima */
+  font-size: var(--fs-tile-name);
+  line-height: 1; color: var(--text-muted);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 /* ── PERIOD SCAN-LINE ─────────────────────────────────────── */
@@ -564,7 +633,31 @@ html, body {
 }
 @keyframes chip-appear { from{transform:scale(.4);opacity:0} to{transform:scale(1);opacity:1} }
 .mixer-chip:hover { transform:scale(1.1); }
+.mixer-chip:active { transform:scale(.92); }
 .mixer-chip small { font-size:9px; color:var(--text-muted); }
+
+/* ── "SPOJI" CTA ──────────────────────────────────────────── */
+.mixer-cta {
+  display: none; width: 100%; margin-top: 8px;
+  padding: 11px; border: none; border-radius: 10px;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: .02em;
+  color: #fff; cursor: pointer;
+  background: linear-gradient(135deg, rgba(168,85,247,.55), rgba(0,212,255,.4));
+  border: 1px solid rgba(168,85,247,.6);
+  transition: transform .12s, box-shadow .2s, background .2s;
+}
+.mixer-cta.visible { display: block; }
+.mixer-cta:active { transform: scale(.97); }
+.mixer-cta.ready {
+  background: linear-gradient(135deg, var(--magic), var(--accent));
+  box-shadow: 0 0 22px rgba(168,85,247,.6), 0 0 40px rgba(0,212,255,.3);
+  animation: cta-ready-pulse 1.4s ease-in-out infinite;
+}
+@keyframes cta-ready-pulse {
+  0%,100% { box-shadow: 0 0 18px rgba(168,85,247,.5), 0 0 34px rgba(0,212,255,.25); }
+  50%     { box-shadow: 0 0 28px rgba(168,85,247,.8), 0 0 52px rgba(0,212,255,.45); }
+}
 
 /* ── DRAG GHOST ───────────────────────────────────────────── */
 .drag-ghost {
@@ -924,14 +1017,44 @@ html, body {
     position: relative;
   }
 
-  /* Canvas zauzima cijeli dostupni prostor */
+  /* Canvas-wrap postaje skrolabilni spremnik 2D mreže */
   .canvas-wrap {
     flex: 1; min-height: 0;
-    padding-bottom: 64px; /* prostor za mini komoru uvijek */
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); /* prostor za mini komoru */
+  }
+
+  /* 3D canvas se ne koristi na mobilnom — gasi WebGL i prostor */
+  #canvas { display: none; }
+
+  /* 2D periodni sustav — CSS Grid 18 stupaca × periodi */
+  .ptable-2d {
+    display: grid;
+    grid-template-columns: repeat(18, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    gap: clamp(1px, 0.6vw, 4px);
+    width: 100%; padding: 8px 6px;
+    align-content: start;
+  }
+  /* Prazan red 8 = razmak prije lantanoida/aktinoida */
+  .ptable-2d::before {
+    content: ''; grid-row: 8; grid-column: 1 / -1; height: 6px;
+  }
+  /* Na širim "mobilnim" ekranima (tableti) prikaži i ime elementa */
+  @media (min-width: 620px) {
+    .pt-name { display: block; }
+    .pt-tile { gap: 2px; }
   }
 
   /* Hint skriven (touchscreen nema hover) */
   .canvas-hint { display: none; }
+
+  /* Sticky filter rail iznad mreže */
+  .control-rail { position: sticky; top: 0; z-index: 40; }
+
+  /* Long-press lupa se ne koristi na mobilnom (gesta uklonjena) */
+  .magnifier { display: none !important; }
 
   /* Hover tooltip — manji na mobu */
   .hover-tooltip { top: 8px; left: 8px; font-size: 12px; padding: 5px 10px; }
@@ -1008,6 +1131,18 @@ html, body {
   .onboarding-steps { gap: 8px; }
   .onboarding-step  { padding: 12px 6px; }
   .onboarding-icon  { font-size: 22px; }
+}
+
+/* Vrlo uski telefoni: pametni hibrid — minimalna pločica + horiz. scroll
+   (umjesto da se sve stisne u nečitljivih ~18px) */
+@media (max-width: 380px) {
+  .ptable-2d {
+    grid-template-columns: repeat(18, minmax(28px, 1fr));
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ptable-2d::-webkit-scrollbar { display: none; }
 }
 
 /* Jako mali ekrani (≤ 360px) */
