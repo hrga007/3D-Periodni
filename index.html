@@ -33,6 +33,8 @@
       <!-- Periodni sustav — uvijek vidljiv -->
       <div class="canvas-wrap">
         <canvas id="canvas"></canvas>
+        <!-- 2D periodni sustav — renderira JS samo na mobilnom (≤900px) -->
+        <div id="ptable-2d" class="ptable-2d" hidden></div>
         <div id="loading" class="loading-overlay">Učitavanje 3D scene…</div>
         <div id="hover-tooltip" class="hover-tooltip"></div>
         <div id="message" class="message-bar"></div>
@@ -92,9 +94,11 @@
                 <div id="mixer-items" class="mixer-items"></div>
                 <div class="drop-hint" id="drop-hint">
                   <span class="drop-icon">⬇</span>
-                  <span>Povuci element ovdje</span>
+                  <span>Dodaj elemente u komoru</span>
                 </div>
               </div>
+              <!-- Eksplicitni "Spoji" — pojavljuje se kad komora ima ≥2 elementa -->
+              <button id="mixer-cta" class="mixer-cta" onclick="mixerCombine()">✦ Spoji</button>
             </div>
           </section>
         </div>
@@ -141,15 +145,15 @@
       <div class="onboarding-steps">
         <div class="onboarding-step" style="animation-delay:0.05s">
           <div class="onboarding-icon">👆</div>
-          <div class="onboarding-text"><strong>Tap</strong> na element<br><small>Detalji i dodavanje u komoru</small></div>
+          <div class="onboarding-text"><strong>Tap</strong> na element<br><small>Otvara detalje elementa</small></div>
         </div>
         <div class="onboarding-step" style="animation-delay:0.15s">
-          <div class="onboarding-icon">↕</div>
-          <div class="onboarding-text"><strong>Swipe</strong> komoru<br><small>Proširi ili smanji prikaz</small></div>
+          <div class="onboarding-icon">✦</div>
+          <div class="onboarding-text"><strong>Dodaj</strong> u komoru<br><small>Sakupi elemente za spoj</small></div>
         </div>
         <div class="onboarding-step" style="animation-delay:0.25s">
-          <div class="onboarding-icon">🤌</div>
-          <div class="onboarding-text"><strong>Pinch</strong> za zoom<br><small>Pan prstom = pomak tablice</small></div>
+          <div class="onboarding-icon">⚗</div>
+          <div class="onboarding-text"><strong>Spoji</strong> elemente<br><small>Komora prikaže molekulu</small></div>
         </div>
       </div>
       <button class="onboarding-btn" onclick="dismissOnboarding()">Razumijem →</button>
